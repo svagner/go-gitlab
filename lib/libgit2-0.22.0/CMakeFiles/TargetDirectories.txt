@@ -1,0 +1,2 @@
+/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/libgit2_clar.dir
+/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/git2.dir

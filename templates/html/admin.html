@@ -1,0 +1,281 @@
+{{define "AdminPage"}}
+{{template "header"}}
+{{template "static"}}
+<style type="text/css">
+.bs-example{
+  margin: 20px;
+}
+/*.modal.large {
+  width: 90%;
+}
+.modal-content.large {
+  width: 150%;
+}*/
+.modal-dialog.large {
+  width: 90%;
+  min-width: 800px;
+}
+</style>
+<script>
+var websocket;
+var commits = {
+{{ range $key, $value := .Repos }}
+'{{ $value.Name }}/{{ $value.Branch }}': {
+{{ range $num, $commit := $value.CommitLog }}
+"{{ $commit.IdStr }}": {
+        'date': "{{ $commit.Commiter.DateStr }}",
+
+        'commitUrl': "{{ $value.Url }}/commit/{{ $commit.IdStr }}",
+        'commiter': { 
+            'user': "{{ $commit.Commiter.User }}",
+            'email': "{{ $commit.Commiter.Email }}",
+        },
+        'author': {
+            'user': "{{ $commit.Author.User }}", 
+            'email': "{{ $commit.Author.Email }}",
+        },
+        'message': "{{ $commit.Message }}",
+},
+{{ end }}
+},
+{{ end }}
+};
+var reconnect = false;
+
+window.onload = function () {
+  WebSocket_connect();
+};
+
+function WebSocket_connect_with_sleep() {
+  window.setTimeout(WebSocket_connect, 1000)
+}
+
+function WebSocket_connect() {
+  console.log("[Websocket debug] ==> Websocket url for connect: ws://" + location.host + "/ws");
+  websocket = new WebSocket("ws://" + location.host + "/ws");
+  websocket.onopen = function () {
+    if (reconnect) {
+      console.log("Websocket: Соединение восстановленно");
+      reconnect = false;
+      var mydiv = document.getElementById("main_data");
+      mydiv.innerHTML = "";
+    }
+    console.log("[Websocket debug] ==> Соединение установлено.");
+    var cmd = {
+      'Cmd': 'subscribe',
+      'Data': 'blocker'
+    };
+    websocket.send(JSON.stringify(cmd));
+    console.log("[Websocket debug] ==> Отправлены данные: "+JSON.stringify(cmd));
+    var cmd = {
+      'Cmd': 'subscribe',
+      'Data': 'pushqueue'
+    };
+    websocket.send(JSON.stringify(cmd));
+    console.log("[Websocket debug] ==> Отправлены данные: "+JSON.stringify(cmd));
+  };
+
+  websocket.onclose = function (event) {
+    if (event.wasClean) {
+      console.log('Websocket: Cоединение закрыто по таймауту');
+      console.log('[Websocket debug] ==> Exit: Соединение закрыто чисто');
+    } else {
+      reconnect = true;
+      console.log('Websocket: Обрыв соединения' +
+          '<br>код: ' + event.code, WebSocket_connect_with_sleep);
+    }
+    console.log('[Websocket debug] ==> Код: ' + event.code + ' причина: ' + event.reason);
+  };
+
+  websocket.onerror = function (error) {
+    console.log("[Websocket debug] ==> Ошибка " + error.message);
+  };
+
+  websocket.onmessage = function (event) {
+    var data = $.parseJSON(event.data);
+    data = JSON.parse(data);
+    console.log("[Websocket debug] ==> Получены данные: ");
+    console.log(data);
+    if (data.Channel == "blocker") { 
+      if (data.Command == "lock") {
+        div = document.getElementById("lock-"+data.Data);
+        div.innerHTML = "<a href=\"#\" onclick=\"Blocker(false, '"+data.Data+"')\" class=\"btn btn-success btn-sm\">UnLock &raquo;</a></div></td>";
+      }
+      if (data.Command == "unlock") {
+        div = document.getElementById("lock-"+data.Data);
+        div.innerHTML = "<a href=\"#\" onclick=\"Blocker(true, '"+data.Data+"')\" class=\"btn btn-danger btn-sm\">Lock &raquo;</a></div></td>";
+      }
+    }
+    if (data.Channel == "pushqueue") { 
+      if (data.Command == "clean") {
+        div = document.getElementById("queue-"+data.Data);
+        div.innerHTML = "0";
+      }
+      if (data.Command == "add") {
+        div = document.getElementById("queue-"+data.Data);
+        div.innerHTML = parseInt(div.innerText)+1;
+      }
+    }
+  }
+}
+
+function Blocker(lock, rep) {
+  if (lock) {
+    var cmd = {
+      'Cmd': 'lock',
+      'Data': rep
+    };
+    websocket.send(JSON.stringify(cmd));
+    console.log("[Websocket debug] ==> Отправлены данные: "+JSON.stringify(cmd));
+  } else {
+    var cmd = {
+      'Cmd': 'unlock',
+      'Data': rep
+    };
+    websocket.send(JSON.stringify(cmd));
+    console.log("[Websocket debug] ==> Отправлены данные: "+JSON.stringify(cmd));
+  }
+}
+
+function ShowInfo(rep) {
+  $("#tbl-commits > tbody").html("");
+  //var table = document.getElementById("tbl-commits");
+  var data = '';
+  for(var commit in commits[rep]){
+    console.log(1)
+    data += "<tr>";
+    data += "<td>"+commits[rep][commit]['date']+"</td>";
+    data += "<td><a href="+commits[rep][commit]['commitUrl']+" target=\"_blank\">"+commit+"</a></td>";
+    data += "<td>"+commits[rep][commit]['commiter']['user']+" <"+commits[rep][commit]['commiter']['email']+"> </td>";
+    data += "<td>"+commits[rep][commit]['author']['user']+" <"+commits[rep][commit]['author']['email']+"> </td>";
+    data += "<td>"+commits[rep][commit]['message']+"</td>";
+    data += "<td><div id=\"recover-"+rep+"-"+commit+"><a href=\"#\" class=\"btn btn-success btn-sm\">Recover &raquo;</a></div></td>";
+    data += "</tr>";
+  }
+  $("#tbl-commits > tbody").html(data);
+  $("#info_modal").modal('show');
+}
+
+</script>
+{{template "body"}}
+
+<h2><p class="text-center">Repositories</p></h2>
+<div class="bs-example">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Repository path</th>
+        <th>Directory</th>
+        <th>Branch</th>
+        <th>Push len</th>
+        <th>Last error</th>
+        <th>Info</th>
+        <th>Lock</th>
+      </tr>
+    </thead>
+    <tbody>
+{{ range $key, $value := .Repos }}
+      <tr>
+        <td>{{ $value.Name }}</td>
+        <td>{{ $value.Path }}</td>
+        <td>{{ $value.Branch }}</td>
+        <td><div id="queue-{{$value.Name}}/{{$value.Branch}}">{{ len $value.History }}</div></td>
+        {{ if $value.Error }}
+        <td><div id="error-{{$value.Name}}/{{$value.Branch}}">File was changed: {{ $value.LastError }}</div></td>
+        {{ else }}
+        <td><div id="error-{{$value.Name}}/{{$value.Branch}}">No errors</div></td>
+        {{ end }}
+        <td><a href="#" class="btn btn-info btn-sm" data-toggle="modal" onclick="ShowInfo('{{$value.Name}}/{{$value.Branch}}')">Info &raquo;</a></td>
+        {{ if $value.Lock }}
+        <td><div id="lock-{{$value.Name}}/{{$value.Branch}}"><a href="#" onclick="Blocker(false, '{{ $value.Name }}/{{ $value.Branch }}')" class="btn btn-success btn-sm">UnLock &raquo;</a></div></td>
+        {{ else }}
+        <td><div id="lock-{{$value.Name}}/{{$value.Branch}}"><a href="#" onclick="Blocker(true, '{{ $value.Name }}/{{ $value.Branch }}')" class="btn btn-danger btn-sm">Lock &raquo;</a></td>
+        {{ end }}
+      </tr>
+{{ end }}
+    </tbody>
+  </table>
+</div>
+
+<h2><p class="text-center">Config</p></h2>
+<div class="bs-example">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Group</th>
+        <th>Key</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>General</td>
+        <td>Host<td>
+        <td>{{ .Config.Global.Host }}</td>
+    </tr>
+    <tr>
+        <td>General</td>
+        <td>Port<td>
+        <td>{{ .Config.Global.Port }}</td>
+    </tr>
+    <tr>
+        <td>Web</td>
+        <td>Api page<td>
+        <td>{{ .Config.Web.Api }}</td>
+    </tr>
+    <tr>
+        <td>Web</td>
+        <td>Management page<td>
+        <td>{{ .Config.Web.Management }}</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<div id="info_modal" class="modal large fade">
+  <div class="modal-dialog large">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3 class="modal-title">Repository info</h3>
+      </div>
+      <h4 class="modal-title"><p class="text-center">Last 10 commits</p></h4>
+      <div id="info_body" class="modal-body">
+      <!--  <p>Do you want to save changes you made to document before closing?</p>
+        <p class="text-warning"><small>If you don't save, your changes will be lost.</small></p>-->
+  <table id="tbl-commits" class="table table-hover">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Commit Id</th>
+        <th>Commiter</th>
+        <th>Author</th>
+        <th>Message</th>
+        <th>Recover</th>
+      </tr>
+    </thead>
+    <tbody>
+{{ range $key, $value := .Repos }}
+{{ range $num, $commit := $value.CommitLog }}
+      <tr>
+        <td>{{ $commit.Commiter.DateStr }}</td>
+        <td><a href="{{ $value.Url }}/commit/{{ $commit.IdStr }}" target="_blank">{{ $commit.IdStr }}</a></td>
+        <td>{{ $commit.Commiter.User }} <{{ $commit.Commiter.Email }}> </td>
+        <td>{{ $commit.Author.User }} <{{ $commit.Author.Email }}> </td>
+        <td>{{ $commit.Message }}</td>
+        <td><div id="recover-{{$commit.IdStr}}"><a href="#" class="btn btn-success btn-sm">Recover &raquo;</a></div></td>
+      </tr>
+{{ end }}
+{{ end }}
+    </tbody>
+  </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{template "footer"}}
+{{end}}

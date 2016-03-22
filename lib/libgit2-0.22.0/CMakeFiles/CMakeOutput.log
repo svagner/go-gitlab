@@ -1,0 +1,349 @@
+The system is: FreeBSD - 11.0-CURRENT - amd64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/cc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is Clang, found in "/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/3.2.3/CompilerIdC/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec2136167835/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec2136167835.dir/build.make CMakeFiles/cmTryCompileExec2136167835.dir/build
+gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec2136167835.dir/testCCompiler.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec2136167835.dir/testCCompiler.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTryCompileExec2136167835
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2136167835.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTryCompileExec2136167835.dir/testCCompiler.c.o  -o cmTryCompileExec2136167835  
+gmake[1]: выход из каталога «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec1505562872/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec1505562872.dir/build.make CMakeFiles/cmTryCompileExec1505562872.dir/build
+gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec1505562872.dir/CMakeCCompilerABI.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec1505562872.dir/CMakeCCompilerABI.c.o   -c /usr/local/share/cmake/Modules/CMakeCCompilerABI.c
+Linking C executable cmTryCompileExec1505562872
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec1505562872.dir/link.txt --verbose=1
+/usr/bin/cc      -v CMakeFiles/cmTryCompileExec1505562872.dir/CMakeCCompilerABI.c.o  -o cmTryCompileExec1505562872   
+FreeBSD clang version 3.6.1 (tags/RELEASE_361/final 237755) 20150525
+Target: x86_64-unknown-freebsd11.0
+Thread model: posix
+ "/usr/bin/ld" --eh-frame-hdr -dynamic-linker /libexec/ld-elf.so.1 --hash-style=both --enable-new-dtags -o cmTryCompileExec1505562872 /usr/lib/crt1.o /usr/lib/crti.o /usr/lib/crtbegin.o -L/usr/lib CMakeFiles/cmTryCompileExec1505562872.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/crtend.o /usr/lib/crtn.o
+gmake[1]: выход из каталога «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec1505562872/fast"]
+  ignore line: [/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec1505562872.dir/build.make CMakeFiles/cmTryCompileExec1505562872.dir/build]
+  ignore line: [gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»]
+  ignore line: [/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1]
+  ignore line: [Building C object CMakeFiles/cmTryCompileExec1505562872.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/cc    -o CMakeFiles/cmTryCompileExec1505562872.dir/CMakeCCompilerABI.c.o   -c /usr/local/share/cmake/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTryCompileExec1505562872]
+  ignore line: [/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec1505562872.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/cc      -v CMakeFiles/cmTryCompileExec1505562872.dir/CMakeCCompilerABI.c.o  -o cmTryCompileExec1505562872   ]
+  ignore line: [FreeBSD clang version 3.6.1 (tags/RELEASE_361/final 237755) 20150525]
+  ignore line: [Target: x86_64-unknown-freebsd11.0]
+  ignore line: [Thread model: posix]
+  link line: [ "/usr/bin/ld" --eh-frame-hdr -dynamic-linker /libexec/ld-elf.so.1 --hash-style=both --enable-new-dtags -o cmTryCompileExec1505562872 /usr/lib/crt1.o /usr/lib/crti.o /usr/lib/crtbegin.o -L/usr/lib CMakeFiles/cmTryCompileExec1505562872.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/crtend.o /usr/lib/crtn.o]
+    arg [/usr/bin/ld] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/libexec/ld-elf.so.1] ==> ignore
+    arg [--hash-style=both] ==> ignore
+    arg [--enable-new-dtags] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTryCompileExec1505562872] ==> ignore
+    arg [/usr/lib/crt1.o] ==> ignore
+    arg [/usr/lib/crti.o] ==> ignore
+    arg [/usr/lib/crtbegin.o] ==> ignore
+    arg [-L/usr/lib] ==> dir [/usr/lib]
+    arg [CMakeFiles/cmTryCompileExec1505562872.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/usr/lib/crtend.o] ==> ignore
+    arg [/usr/lib/crtn.o] ==> ignore
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  collapse library dir [/usr/lib] ==> [/usr/lib]
+  implicit libs: [c]
+  implicit dirs: [/usr/lib]
+  implicit fwks: []
+
+
+
+
+Detecting C [-std=c11] compiler features compiled with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec2897560368/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec2897560368.dir/build.make CMakeFiles/cmTryCompileExec2897560368.dir/build
+gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec2897560368.dir/feature_tests.c.o
+/usr/bin/cc   -std=c11 -o CMakeFiles/cmTryCompileExec2897560368.dir/feature_tests.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/feature_tests.c
+Linking C executable cmTryCompileExec2897560368
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2897560368.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTryCompileExec2897560368.dir/feature_tests.c.o  -o cmTryCompileExec2897560368  
+gmake[1]: выход из каталога «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:1c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c99] compiler features compiled with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec3590175681/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec3590175681.dir/build.make CMakeFiles/cmTryCompileExec3590175681.dir/build
+gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec3590175681.dir/feature_tests.c.o
+/usr/bin/cc   -std=c99 -o CMakeFiles/cmTryCompileExec3590175681.dir/feature_tests.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/feature_tests.c
+Linking C executable cmTryCompileExec3590175681
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec3590175681.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTryCompileExec3590175681.dir/feature_tests.c.o  -o cmTryCompileExec3590175681  
+gmake[1]: выход из каталога «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c90] compiler features compiled with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec3979546257/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec3979546257.dir/build.make CMakeFiles/cmTryCompileExec3979546257.dir/build
+gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec3979546257.dir/feature_tests.c.o
+/usr/bin/cc   -std=c90 -o CMakeFiles/cmTryCompileExec3979546257.dir/feature_tests.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/feature_tests.c
+Linking C executable cmTryCompileExec3979546257
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec3979546257.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTryCompileExec3979546257.dir/feature_tests.c.o  -o cmTryCompileExec3979546257  
+gmake[1]: выход из каталога «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:0c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:0c_variadic_macros
+Performing C SOURCE FILE Test IS_FVISIBILITY=HIDDEN_SUPPORTED succeded with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec675872909/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec675872909.dir/build.make CMakeFiles/cmTryCompileExec675872909.dir/build
+gmake[1]: Entering directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec675872909.dir/src.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -DIS_FVISIBILITY=HIDDEN_SUPPORTED   -fvisibility=hidden -o CMakeFiles/cmTryCompileExec675872909.dir/src.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec675872909
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec675872909.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -DIS_FVISIBILITY=HIDDEN_SUPPORTED    CMakeFiles/cmTryCompileExec675872909.dir/src.c.o  -o cmTryCompileExec675872909  
+gmake[1]: Leaving directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C SOURCE FILE Test IS_WNO-MISSING-FIELD-INITIALIZERS_SUPPORTED succeded with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec873357778/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec873357778.dir/build.make CMakeFiles/cmTryCompileExec873357778.dir/build
+gmake[1]: Entering directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec873357778.dir/src.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -DIS_WNO-MISSING-FIELD-INITIALIZERS_SUPPORTED   -Wno-missing-field-initializers -o CMakeFiles/cmTryCompileExec873357778.dir/src.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/src.c
+In file included from <built-in>:313:
+<command line>:2:15: warning: ISO C99 requires whitespace after the macro name [-Wc99-extensions]
+#define IS_WNO-MISSING-FIELD-INITIALIZERS_SUPPORTED 1
+              ^
+1 warning generated.
+Linking C executable cmTryCompileExec873357778
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec873357778.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -DIS_WNO-MISSING-FIELD-INITIALIZERS_SUPPORTED    CMakeFiles/cmTryCompileExec873357778.dir/src.c.o  -o cmTryCompileExec873357778  
+gmake[1]: Leaving directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C SOURCE FILE Test IS_WSTRICT-ALIASING=2_SUPPORTED succeded with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec671603573/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec671603573.dir/build.make CMakeFiles/cmTryCompileExec671603573.dir/build
+gmake[1]: Entering directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec671603573.dir/src.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -DIS_WSTRICT-ALIASING=2_SUPPORTED   -Wstrict-aliasing=2 -o CMakeFiles/cmTryCompileExec671603573.dir/src.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/src.c
+In file included from <built-in>:313:
+<command line>:2:19: warning: ISO C99 requires whitespace after the macro name [-Wc99-extensions]
+#define IS_WSTRICT-ALIASING 2_SUPPORTED
+                  ^
+1 warning generated.
+Linking C executable cmTryCompileExec671603573
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec671603573.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -DIS_WSTRICT-ALIASING=2_SUPPORTED    CMakeFiles/cmTryCompileExec671603573.dir/src.c.o  -o cmTryCompileExec671603573  
+gmake[1]: Leaving directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C SOURCE FILE Test IS_WSTRICT-PROTOTYPES_SUPPORTED succeded with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec463450060/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec463450060.dir/build.make CMakeFiles/cmTryCompileExec463450060.dir/build
+gmake[1]: Entering directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec463450060.dir/src.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -DIS_WSTRICT-PROTOTYPES_SUPPORTED   -Wstrict-prototypes -o CMakeFiles/cmTryCompileExec463450060.dir/src.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/src.c
+In file included from <built-in>:313:
+<command line>:2:19: warning: ISO C99 requires whitespace after the macro name [-Wc99-extensions]
+#define IS_WSTRICT-PROTOTYPES_SUPPORTED 1
+                  ^
+1 warning generated.
+Linking C executable cmTryCompileExec463450060
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec463450060.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -DIS_WSTRICT-PROTOTYPES_SUPPORTED    CMakeFiles/cmTryCompileExec463450060.dir/src.c.o  -o cmTryCompileExec463450060  
+gmake[1]: Leaving directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C SOURCE FILE Test IS_WDECLARATION-AFTER-STATEMENT_SUPPORTED succeded with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec550460305/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec550460305.dir/build.make CMakeFiles/cmTryCompileExec550460305.dir/build
+gmake[1]: Entering directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec550460305.dir/src.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -DIS_WDECLARATION-AFTER-STATEMENT_SUPPORTED   -Wdeclaration-after-statement -o CMakeFiles/cmTryCompileExec550460305.dir/src.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/src.c
+In file included from <built-in>:313:
+<command line>:2:24: warning: ISO C99 requires whitespace after the macro name [-Wc99-extensions]
+#define IS_WDECLARATION-AFTER-STATEMENT_SUPPORTED 1
+                       ^
+1 warning generated.
+Linking C executable cmTryCompileExec550460305
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec550460305.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -DIS_WDECLARATION-AFTER-STATEMENT_SUPPORTED    CMakeFiles/cmTryCompileExec550460305.dir/src.c.o  -o cmTryCompileExec550460305  
+gmake[1]: Leaving directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C SOURCE FILE Test IS_WNO-UNUSED-CONST-VARIABLE_SUPPORTED succeded with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec1139697233/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec1139697233.dir/build.make CMakeFiles/cmTryCompileExec1139697233.dir/build
+gmake[1]: Entering directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec1139697233.dir/src.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -DIS_WNO-UNUSED-CONST-VARIABLE_SUPPORTED   -Wno-unused-const-variable -o CMakeFiles/cmTryCompileExec1139697233.dir/src.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/src.c
+In file included from <built-in>:313:
+<command line>:2:15: warning: ISO C99 requires whitespace after the macro name [-Wc99-extensions]
+#define IS_WNO-UNUSED-CONST-VARIABLE_SUPPORTED 1
+              ^
+1 warning generated.
+Linking C executable cmTryCompileExec1139697233
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec1139697233.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -DIS_WNO-UNUSED-CONST-VARIABLE_SUPPORTED    CMakeFiles/cmTryCompileExec1139697233.dir/src.c.o  -o cmTryCompileExec1139697233  
+gmake[1]: Leaving directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C SOURCE FILE Test IS_WNO-UNUSED-FUNCTION_SUPPORTED succeded with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec471125332/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec471125332.dir/build.make CMakeFiles/cmTryCompileExec471125332.dir/build
+gmake[1]: Entering directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec471125332.dir/src.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -DIS_WNO-UNUSED-FUNCTION_SUPPORTED   -Wno-unused-function -o CMakeFiles/cmTryCompileExec471125332.dir/src.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/src.c
+In file included from <built-in>:313:
+<command line>:2:15: warning: ISO C99 requires whitespace after the macro name [-Wc99-extensions]
+#define IS_WNO-UNUSED-FUNCTION_SUPPORTED 1
+              ^
+1 warning generated.
+Linking C executable cmTryCompileExec471125332
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec471125332.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -DIS_WNO-UNUSED-FUNCTION_SUPPORTED    CMakeFiles/cmTryCompileExec471125332.dir/src.c.o  -o cmTryCompileExec471125332  
+gmake[1]: Leaving directory '/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Determining if files pthread.h exist passed with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec3401223431/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec3401223431.dir/build.make CMakeFiles/cmTryCompileExec3401223431.dir/build
+gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec3401223431.dir/CheckIncludeFiles.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -Wno-unused-function    -o CMakeFiles/cmTryCompileExec3401223431.dir/CheckIncludeFiles.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CheckIncludeFiles.c
+Linking C executable cmTryCompileExec3401223431
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec3401223431.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -Wno-unused-function     CMakeFiles/cmTryCompileExec3401223431.dir/CheckIncludeFiles.c.o  -o cmTryCompileExec3401223431  
+gmake[1]: выход из каталога «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+
+
+Determining if the function pthread_create exists in the pthread passed with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec64792902/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec64792902.dir/build.make CMakeFiles/cmTryCompileExec64792902.dir/build
+gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec64792902.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -Wno-unused-function -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTryCompileExec64792902.dir/CheckFunctionExists.c.o   -c /usr/local/share/cmake/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec64792902
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec64792902.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -Wno-unused-function -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTryCompileExec64792902.dir/CheckFunctionExists.c.o  -o cmTryCompileExec64792902  -lpthread 
+gmake[1]: выход из каталога «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+
+
+Determining if the function clock_gettime exists in the rt passed with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec3536663307/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec3536663307.dir/build.make CMakeFiles/cmTryCompileExec3536663307.dir/build
+gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec3536663307.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -Wno-unused-function -DCHECK_FUNCTION_EXISTS=clock_gettime   -o CMakeFiles/cmTryCompileExec3536663307.dir/CheckFunctionExists.c.o   -c /usr/local/share/cmake/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec3536663307
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec3536663307.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -Wno-unused-function -DCHECK_FUNCTION_EXISTS=clock_gettime    CMakeFiles/cmTryCompileExec3536663307.dir/CheckFunctionExists.c.o  -o cmTryCompileExec3536663307  -L/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/time.h  -lrt -Wl,-rpath,/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/time.h 
+gmake[1]: выход из каталога «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+
+

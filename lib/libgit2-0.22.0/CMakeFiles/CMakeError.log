@@ -1,0 +1,57 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec1836252213/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec1836252213.dir/build.make CMakeFiles/cmTryCompileExec1836252213.dir/build
+gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec1836252213.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -Wno-unused-function    -o CMakeFiles/cmTryCompileExec1836252213.dir/CheckSymbolExists.c.o   -c /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTryCompileExec1836252213
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec1836252213.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -Wno-unused-function     CMakeFiles/cmTryCompileExec1836252213.dir/CheckSymbolExists.c.o  -o cmTryCompileExec1836252213  
+CMakeFiles/cmTryCompileExec1836252213.dir/CheckSymbolExists.c.o: In function `main':
+/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CheckSymbolExists.c:(.text+0x7): undefined reference to `pthread_create'
+cc: error: linker command failed with exit code 1 (use -v to see invocation)
+CMakeFiles/cmTryCompileExec1836252213.dir/build.make:88: ошибка выполнения рецепта для цели «cmTryCompileExec1836252213»
+gmake[1]: *** [cmTryCompileExec1836252213] Ошибка 1
+gmake[1]: выход из каталога «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+Makefile:117: ошибка выполнения рецепта для цели «cmTryCompileExec1836252213/fast»
+gmake: *** [cmTryCompileExec1836252213/fast] Ошибка 2
+
+File /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/local/bin/gmake" "cmTryCompileExec2938635439/fast"
+/usr/local/bin/gmake -f CMakeFiles/cmTryCompileExec2938635439.dir/build.make CMakeFiles/cmTryCompileExec2938635439.dir/build
+gmake[1]: вход в каталог «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+/usr/local/bin/cmake -E cmake_progress_report /home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec2938635439.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -Wno-unused-function -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTryCompileExec2938635439.dir/CheckFunctionExists.c.o   -c /usr/local/share/cmake/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec2938635439
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2938635439.dir/link.txt --verbose=1
+/usr/bin/cc  -D_GNU_SOURCE -Wall -Wextra  -fvisibility=hidden -fPIC -Wno-missing-field-initializers -Wstrict-aliasing=2 -Wstrict-prototypes -Wdeclaration-after-statement -Wno-unused-const-variable -Wno-unused-function -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTryCompileExec2938635439.dir/CheckFunctionExists.c.o  -o cmTryCompileExec2938635439  -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+cc: error: linker command failed with exit code 1 (use -v to see invocation)
+CMakeFiles/cmTryCompileExec2938635439.dir/build.make:88: ошибка выполнения рецепта для цели «cmTryCompileExec2938635439»
+gmake[1]: *** [cmTryCompileExec2938635439] Ошибка 1
+gmake[1]: выход из каталога «/home/vagner/Documents/git/mocomedia/go-gitlab/lib/libgit2-0.22.0/CMakeFiles/CMakeTmp»
+Makefile:117: ошибка выполнения рецепта для цели «cmTryCompileExec2938635439/fast»
+gmake: *** [cmTryCompileExec2938635439/fast] Ошибка 2
+
+
