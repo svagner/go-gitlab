@@ -25,11 +25,8 @@ cmake -DCMAKE_INSTALL_PREFIX=/usr .
 make
 make install
 
-mkdir -p /tmp/gobuild/src
-mkdir -p /tmp/gobuild/pkg
-mkdir -p /tmp/gobuild/bin
-mkdir -p /usr/share/go-gitlab
 export GOPATH=/tmp/gobuild
+mkdir -p ${GOPATH}/src ${GOPATH}/pkg ${GOPATH}/bin /usr/share/go-gitlab
 
 go get
 go build
