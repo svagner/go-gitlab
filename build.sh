@@ -19,7 +19,7 @@
 
 set -o nounset                              # Treat unset variables as an error
 
-cd lib/libgit2-0.22.0
+pushd lib/libgit2-0.22.0
 
 cmake -DCMAKE_INSTALL_PREFIX=/usr .
 make
@@ -27,6 +27,8 @@ make install
 
 export GOPATH=/tmp/gobuild
 mkdir -p ${GOPATH}/src ${GOPATH}/pkg ${GOPATH}/bin /usr/share/go-gitlab
+
+popd
 
 go get
 go build
