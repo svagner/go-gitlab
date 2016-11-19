@@ -27,6 +27,7 @@ type GitConfig struct {
 
 type GitRepository struct {
 	Path          string
+	Alias 		string
 	Branch        string
 	Remote        string
 	PushRequests  bool
@@ -42,12 +43,15 @@ type GitLab struct {
 }
 
 type LogConfig struct {
-	Log              string
 	SkypeUrl         string
 	SkypeDistination string
 	SlackUrl         string
 	SlackToken       string
 	SlackChannel     string
+	File      string
+	BufioFile bool
+	Syslog    bool
+	Console   bool
 }
 
 type WebConfig struct {

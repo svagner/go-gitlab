@@ -3,8 +3,8 @@ package events
 import (
 	"errors"
 
-	"github.com/svagner/go-gitlab/convert"
-	"github.com/svagner/go-gitlab/git"
+	"gopkg.in/svagner/go-gitlab.v2/convert"
+	"gopkg.in/svagner/go-gitlab.v2/git"
 )
 
 type clientChan struct {
@@ -105,7 +105,7 @@ func UnLock(data string, co chan string, ip string) error {
 		for _, rep := range git.Repositories[git.GitUrl2Orig(data)].History {
 			urls = urls + " " + rep.Url
 		}
-		git.Repositories[git.GitUrl2Orig(data)].Update <- urls
+//		git.Repositories[git.GitUrl2Orig(data)].Update <- urls
 		git.Repositories[git.GitUrl2Orig(data)].History = make([]git.UpdateHistory, 0)
 		res := ResCmd{Channel: "pushqueue", Command: "clean", Data: data}
 		Events["pushqueue"].channel <- convert.ConvertToJSON_HTML(res)

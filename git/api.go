@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/svagner/go-gitlab/config"
-	"github.com/svagner/go-gitlab/logger"
+	"gopkg.in/svagner/go-gitlab.v2/config"
+	"gopkg.in/svagner/go-gitlab.v2/logger"
 )
 
 /* {"name":string,"username":string,"id":int, "state":string,
@@ -73,7 +73,7 @@ func GetUserInfo(userId int) (*UserInfo, error) {
 		prefix = scheme + "://"
 	}
 
-	logger.DebugPrint(fmt.Sprintf("Get user info from gitlab for userId %d: %s", userId, prefix+host+USERAPI_PREFIX+strconv.Itoa(userId)+USERAPI_POSTFIX+token))
+	logger.Log.Debug(fmt.Sprintf("Get user info from gitlab for userId %d: %s", userId, prefix+host+USERAPI_PREFIX+strconv.Itoa(userId)+USERAPI_POSTFIX+token))
 	resp, err := http.Get(prefix + host + USERAPI_PREFIX + strconv.Itoa(userId) + USERAPI_POSTFIX + token)
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func GetUserInfo(userId int) (*UserInfo, error) {
 	if resp.StatusCode != 200 {
 		return nil, errors.New("Get request fow get user info (GitLab API) returned wrong status: " + strconv.Itoa(resp.StatusCode))
 	}
-	logger.DebugPrint(fmt.Sprintf("Got response status %d with length %d", resp.StatusCode, resp.ContentLength))
+	logger.Log.Debug(fmt.Sprintf("Got response status %d with length %d", resp.StatusCode, resp.ContentLength))
 	defer resp.Body.Close()
 
 	user := new(UserInfo)

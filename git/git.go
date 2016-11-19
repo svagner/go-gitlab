@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -12,13 +11,17 @@ import (
 	"sort"
 
 	"github.com/howeyc/fsnotify"
-	"github.com/svagner/go-gitlab/config"
-	"github.com/svagner/go-gitlab/logger"
-	git2go "gopkg.in/libgit2/git2go.v22"
-	sshutil "sourcegraph.com/sourcegraph/go-vcs/vcs/ssh"
+	"gopkg.in/svagner/go-gitlab.v2/config"
+	"gopkg.in/svagner/go-gitlab.v2/logger"
+	git "gopkg.in/src-d/go-git.v4"
+	gitCommon "gopkg.in/svagner/go-git.v4/plumbing/client/common"
+	ssh_client "gopkg.in/svagner/go-git.v4/plumbing/client/ssh"
+	"gopkg.in/svagner/go-git.v4/plumbing"
+	"io"
+	"io/ioutil"
+	"golang.org/x/crypto/ssh"
 )
 
-var standardKnownHosts sshutil.KnownHosts
 
 type SSHConfig struct {
 	PublicKey  []byte
@@ -31,26 +34,25 @@ type UpdateHistory struct {
 }
 
 type GitCommitLog struct {
-	Type        git2go.ObjectType
-	Id          *git2go.Oid
+	Type       plumbing.ObjectType
+	Id         plumbing.Hash
 	IdStr       string
 	Author      GitAuthor
 	Commiter    GitAuthor
-	ParentCount uint
-	TreeId      *git2go.Oid
+	ParentCount int
+	TreeId      plumbing.Hash
 	Message     string
 }
 
 type GitBlobLog struct {
-	Type  git2go.ObjectType
-	Id    *git2go.Oid
+	Type  plumbing.ObjectType
+	Id    plumbing.Hash
 	IdStr string
-	Size  int64
 }
 
 type GitTreeLog struct {
-	Type       git2go.ObjectType
-	Id         *git2go.Oid
+	Type       plumbing.ObjectType
+	Id         plumbing.Hash
 	IdStr      string
 	EntryCount uint64
 }
@@ -69,8 +71,9 @@ type GitEvents struct {
 }
 
 type Repository struct {
-	Link           *git2go.Repository
-	Callback       *git2go.RemoteCallbacks
+	Link *git.Repository
+	Auth gitCommon.AuthMethod
+	User string
 	Path           string
 	Branch         string
 	Update         chan string
@@ -118,26 +121,45 @@ func (p GitCommit) Swap(i, j int) {
 }
 
 func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
-	cb := createRemoteCallbacks(cfg)
-
 	for _, rep := range repos {
-		var branch string
+		var (
+			branch,
+			repName string
+		)
 		if rep.Branch != "" {
 			branch = rep.Branch
 		} else {
 			branch = DEFAULT_BRANCH
 		}
-		gitOptions := git2go.CloneOptions{RemoteCallbacks: cb, CheckoutBranch: branch}
-		log.Println(rep.Remote)
-		logger.DebugPrint("Try to open repository " + rep.Remote + ": " + rep.Path)
-		gitH, err := git2go.OpenRepository(rep.Path)
+
+		if rep.Alias != "" {
+			repName = rep.Alias + "/" + rep.Branch
+		} else {
+			repName = GitUrl2Orig(rep.Remote)+"/"+rep.Branch
+		}
+
+		r, err := git.NewFilesystemRepository(rep.Path)
 		if err != nil {
-			logger.DebugPrint("Init new repository (clone) copy for " + rep.Remote + ": " + rep.Path)
-			gitH, err = git2go.Clone(rep.Remote, rep.Path, &gitOptions)
+			return err
+		}
+
+
+		sshKey, err := makeSigner(cfg.PrivateKey)
+		if err != nil {
+			log.Fatalln("SSH error >>", err.Error())
+		}
+
+		if empty, err :=  r.IsEmpty(); empty || err != nil {
+			err = r.Clone(&git.CloneOptions{
+				URL: rep.Remote,
+				Auth: &ssh_client.PublicKeys{User: cfg.User, Signer: sshKey},
+			})
 			if err != nil {
 				return err
 			}
 		}
+
+
 		chanQuit := make(chan bool)
 		chanUpdate := make(chan string)
 		chanQuitAccept := make(chan bool)
@@ -147,9 +169,10 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 		treeLog := make([]GitTreeLog, 0)
 		cmtLog := make([]GitCommitLog, 0)
 		subDirs := make([]string, 0)
-		Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch] = &Repository{
-			Link:          gitH,
-			Callback:      cb,
+		Repositories[repName] = &Repository{
+			Link: r,
+			User: cfg.User,
+			Auth: &ssh_client.PublicKeys{User: cfg.User, Signer: sshKey},
 			Path:          rep.Path,
 			Branch:        branch,
 			Name:          rep.Remote,
@@ -169,139 +192,157 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 			},
 			SubDirectories: subDirs,
 		}
-		go Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].InitFSWatch()
 
-		// get rep log
-		logger.DebugPrint(rep)
-		logger.DebugPrint("Get commits for " + rep.Remote + ": " + rep.Path)
-		odb, err := gitH.Odb()
+
+		ref, err := r.Head()
 		if err != nil {
-			logger.WarningPrint("Get commits for " + rep.Remote + ": " + rep.Path + " returned error: " + err.Error())
 			return err
 		}
-		ccb := git2go.OdbForEachCallback(func(oid *git2go.Oid) error {
-			obj, err := gitH.Lookup(oid)
+		commit, err := r.Commit(ref.Hash())
+		if err != nil {
+			return err
+		}
+
+		// get rep log
+		files, err := commit.Files()
+		if err != nil {
+			return err
+		}
+
+		// ... now we iterate the files to save to disk
+		err = files.ForEach(func(f *git.File) error {
+			abs := filepath.Join(rep.Path, f.Name)
+			dir := filepath.Dir(abs)
+
+			os.MkdirAll(dir, 0777)
+			file, err := os.Create(abs)
 			if err != nil {
-				logger.WarningPrint("Lookup commits for " + rep.Remote + ": " + rep.Path + " returned error: " + err.Error())
 				return err
 			}
 
-			switch obj := obj.(type) {
+			defer file.Close()
+			r, err := f.Reader()
+			if err != nil {
+				return err
+			}
+
+			defer r.Close()
+
+			if err := file.Chmod(f.Mode); err != nil {
+				return err
+			}
+
+			_, err = io.Copy(file, r)
+			return err
+		})
+		go Repositories[repName].InitFSWatch()
+
+		ccb := func(commit *git.Commit) error {
+			switch commit.Type() {
 			default:
-			case *git2go.Blob:
+			case plumbing.BlobObject:
 				break
-				Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].BlobLog =
-					append(Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].BlobLog,
+				Repositories[repName].BlobLog =
+					append(Repositories[repName].BlobLog,
 						GitBlobLog{
-							Type:  obj.Type(),
-							Id:    obj.Id(),
-							IdStr: obj.Id().String(),
-							Size:  obj.Size(),
+							Type:  commit.Type(),
+							Id:    commit.ID(),
+							IdStr: commit.ID().String(),
 						})
-			case *git2go.Commit:
-				author := obj.Author()
-				committer := obj.Committer()
-				Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].CommitLog =
-					append(Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].CommitLog,
+			case plumbing.CommitObject:
+				tree, err := commit.Tree()
+				if err != nil {
+					return err
+				}
+				Repositories[repName].CommitLog =
+					append(Repositories[repName].CommitLog,
 						GitCommitLog{
-							Type:  obj.Type(),
-							Id:    obj.Id(),
-							IdStr: obj.Id().String(),
+							Type:  commit.Type(),
+							Id:    commit.ID(),
+							IdStr: commit.ID().String(),
 							Author: GitAuthor{
-								User:    author.Name,
-								Email:   author.Email,
-								Date:    author.When,
-								DateStr: author.When.String(),
+								User:    commit.Author.Name,
+								Email:   commit.Author.Email,
+								Date:    commit.Author.When,
+								DateStr: commit.Author.When.String(),
 							},
 							Commiter: GitAuthor{
-								User:    committer.Name,
-								Email:   committer.Email,
-								Date:    committer.When,
-								DateStr: author.When.String(),
+								User:    commit.Committer.Name,
+								Email:   commit.Committer.Email,
+								Date:    commit.Committer.When,
+								DateStr: commit.Committer.When.String(),
 							},
-							ParentCount: obj.ParentCount(),
-							TreeId:      obj.TreeId(),
-							Message:     strings.Replace(obj.Message(), "\n", "\n        ", -1),
+							ParentCount: commit.NumParents(),
+							TreeId:      tree.ID(),
+							Message:     strings.Replace(commit.Message, "\n", "\n        ", -1),
 						})
-			case *git2go.Tree:
+			case plumbing.AnyObject:
 				break
-				Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].TreeLog =
-					append(Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].TreeLog,
-						GitTreeLog{
-							Type:       obj.Type(),
-							Id:         obj.Id(),
-							IdStr:      obj.Id().String(),
-							EntryCount: obj.EntryCount(),
-						})
 			}
 			return nil
-		})
-		odb.ForEach(ccb)
-		sort.Reverse(Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].CommitLog)
-		if len(Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].CommitLog) > 10 {
-			Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].CommitLog = Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].CommitLog[0:10]
 		}
-		logger.DebugPrint("Commits was recieved for " + rep.Remote + ": " + rep.Path)
+		// lockup commits
+		commits, err := r.Commits()
+		if err != nil {
+			logger.Log.Warning("Lookup commits for " + rep.Remote + ": " + rep.Path + " returned error: " + err.Error())
+			return err
+		}
+		commits.ForEach(ccb)
+		sort.Reverse(Repositories[repName].CommitLog)
+		if len(Repositories[repName].CommitLog) > 10 {
+			Repositories[repName].CommitLog = Repositories[repName].CommitLog[0:10]
+		}
+		logger.Log.Debug("Commits was recieved for " + rep.Remote + ": " + rep.Path)
 	}
 	return nil
 }
 
-func (rep *Repository) GetUpdates() error {
-	remotes, err := rep.Link.ListRemotes()
+func (rep *Repository) GetUpdates(c string) error {
+	err := rep.Link.Pull(&git.PullOptions{
+		RemoteName: "origin",
+		Auth: &ssh_client.PublicKeys{User: rep.User, Signer: rep.Auth},
+		ReferenceName: "refs/heads/"+rep.Branch,
+		SingleBranch: true,
+		Depth: 0})
+	if err != nil {
+		logger.Log.Warning(err.Error())
+	}
+	ref, _ := rep.Link.Head()
+	// ... retrieving the commit object
+	commit, err := rep.Link.Commit(ref.Hash())
 	if err != nil {
 		return err
-	} else {
-		origin, err := rep.Link.LookupRemote(remotes[0])
-		origin.SetCallbacks(rep.Callback)
+	}
+	logger.Log.Debug("Got commit", c, ref.Hash().String())
+	files,_ := commit.Files()
+
+	// ... now we iterate the files to save to disk
+	err = files.ForEach(func(f *git.File) error {
+		logger.Log.Debug("Commit", c, "file", rep.Path, f.Name)
+		abs := filepath.Join(rep.Path, f.Name)
+		dir := filepath.Dir(abs)
+
+		os.MkdirAll(dir, 0777)
+		file, err := os.Create(abs)
 		if err != nil {
 			return err
-		} else {
-			refspec := make([]string, 0)
-			err = origin.Fetch(refspec, nil, "")
-			if err != nil {
-				return err
-			}
 		}
-	}
 
-	// merge
-	/*i, err := rep.Link.NewReferenceNameIterator()
-	for r, err := i.Next(); err == nil; r, err = i.Next() {
-		log.Println(r)
-	}
-	refLocal := "refs/heads/developments"
-	ref := "refs/remotes/origin/developments"
-	remote, err := rep.Link.LookupReference(ref)
-	if err != nil {
+		defer file.Close()
+		r, err := f.Reader()
+		if err != nil {
+			return err
+		}
+
+		defer r.Close()
+
+		if err := file.Chmod(f.Mode); err != nil {
+			return err
+		}
+
+		_, err = io.Copy(file, r)
 		return err
-	}
-	local, err := rep.Link.LookupReference(refLocal)
-	if err != nil {
-		return err
-	}
-	log.Println(ref)
-	log.Println(refLocal)
-	log.Println(remote.Target())
-	log.Println(remote.IsRemote())
-	log.Println(local.Target())
-	log.Println(local.IsRemote())
-	if err != nil {
-		return err
-	}*/
-	// FEXME: How can I make merge with git2go library???
-	rep.StopFSWatch()
-	res, err := gitMerge(rep.Path, rep.Branch)
-	if err != nil {
-		rep.StartFSWatch()
-		return err
-	} else {
-		logger.DebugPrint("Git merge command for repository " + rep.Name + " returned: " + string(res))
-	}
-	err = rep.commitLog()
-	if err != nil {
-		logger.WarningPrint("Get commits for " + rep.Path + " return error code: " + err.Error())
-	}
-	rep.StartFSWatch()
+	})
 	return nil
 }
 
@@ -309,27 +350,6 @@ func md5String(md5Sum [16]byte) string {
 	md5Str := fmt.Sprintf("% x", md5Sum)
 	md5Str = strings.Replace(md5Str, " ", ":", -1)
 	return md5Str
-}
-
-func createRemoteCallbacks(cfg config.GitConfig) *git2go.RemoteCallbacks {
-	cb := &git2go.RemoteCallbacks{}
-
-	cb.CredentialsCallback = git2go.CredentialsCallback(func(url string, usernameFromURL string, allowedTypes git2go.CredType) (git2go.ErrorCode, *git2go.Cred) {
-		err, cred := git2go.NewCredSshKey(usernameFromURL, cfg.PublicKey, cfg.PrivateKey, cfg.Passphrase)
-		return git2go.ErrorCode(err), &cred
-	})
-	cb.CertificateCheckCallback = git2go.CertificateCheckCallback(func(cert *git2go.Certificate, valid bool, hostname string) git2go.ErrorCode {
-		return git2go.ErrOk
-	})
-	return cb
-}
-
-func gitMerge(path, branch string) (res []byte, err error) {
-	os.Chdir(path)
-	cmd := exec.Command("git", "merge", "origin/"+branch)
-	res, err = cmd.Output()
-	os.Chdir("/")
-	return
 }
 
 func GitUrl2Orig(url string) string {
@@ -353,7 +373,7 @@ func (rep *Repository) InitFSWatch() {
 	var err error
 	rep.fileWatcher, err = fsnotify.NewWatcher()
 	if err != nil {
-		logger.CriticalPrint("Filed to initialize file system watcher for <" + rep.Path + ">:" + err.Error())
+		logger.Log.Critical("Filed to initialize file system watcher for <" + rep.Path + ">:" + err.Error())
 	}
 
 	go rep.fsEvent(rep.fileWatcher)
@@ -363,7 +383,7 @@ func (rep *Repository) InitFSWatch() {
 
 func (rep *Repository) StartFSWatch() {
 	if len(rep.SubDirectories) != 0 {
-		logger.WarningPrint("Couldn't remove all subdirectories from watcher. Check it!")
+		logger.Log.Warning("Couldn't remove all subdirectories from watcher. Check it!")
 		return
 	}
 	filepath.Walk(rep.Path, func(pathStr string, info os.FileInfo, err error) error {
@@ -379,9 +399,9 @@ func (rep *Repository) StartFSWatch() {
 
 	for _, path := range rep.SubDirectories {
 		err := rep.fileWatcher.Watch(path)
-		logger.DebugPrint("Add directory for watch: " + path)
+		logger.Log.Debug("Add directory for watch: " + path)
 		if err != nil {
-			logger.WarningPrint("FS Monitor error monitor path [" +
+			logger.Log.Warning("FS Monitor error monitor path [" +
 				path + "]: " + err.Error())
 		}
 	}
@@ -392,10 +412,10 @@ func (rep *Repository) StopFSWatch() {
 	for _, path := range rep.SubDirectories {
 		err := rep.fileWatcher.RemoveWatch(path)
 		if err != nil {
-			logger.WarningPrint("Remove directory from watching [" + path +
+			logger.Log.Warning("Remove directory from watching [" + path +
 				"]: " + err.Error())
 		} else {
-			logger.DebugPrint("Remove directory from watching: " + path)
+			logger.Log.Debug("Remove directory from watching: " + path)
 			rmCounter++
 		}
 	}
@@ -412,88 +432,17 @@ func (rep *Repository) fsEvent(watcher *fsnotify.Watcher) {
 			if !rep.FileUpdate {
 				rep.Error = true
 				rep.LastError = ev.String()
-				logger.WarningPrint("ALARM! Change repository git without version control! Repository: " + rep.Name + ", Branch: " + rep.Branch + ". Event: " + ev.String())
-				logger.Skype("ALARM! Change repository git without version control! Repository: "+rep.Name+", Branch: "+rep.Branch+". Event: "+ev.String(), "")
-				logger.Slack("ALARM! Change repository git without version control! Repository: "+rep.Name+", Branch: "+rep.Branch+". Event: "+ev.String(), "")
+				logger.Log.Warning("ALARM! Change repository git without version control! Repository: " + rep.Name + ", Branch: " + rep.Branch + ". Event: " + ev.String())
+				//logger.Skype("ALARM! Change repository git without version control! Repository: "+rep.Name+", Branch: "+rep.Branch+". Event: "+ev.String(), "")
+				//logger.Slack("ALARM! Change repository git without version control! Repository: "+rep.Name+", Branch: "+rep.Branch+". Event: "+ev.String(), "")
 			}
 		case err := <-watcher.Error:
 			if !rep.FileUpdate {
-				logger.WarningPrint("File watcher exitting... Repository: " + rep.Name + ", Branch: " + rep.Branch + ". Quit: " + err.Error())
+				logger.Log.Warning("File watcher exitting... Repository: " + rep.Name + ", Branch: " + rep.Branch + ". Quit: " + err.Error())
 				return
 			}
 		}
 	}
-}
-func (rep *Repository) commitLog() error {
-	// get rep log
-	rep.CommitLog = make([]GitCommitLog, 0)
-	logger.DebugPrint(rep)
-	odb, err := rep.Link.Odb()
-	if err != nil {
-		return err
-	}
-	ccb := git2go.OdbForEachCallback(func(oid *git2go.Oid) error {
-		obj, err := rep.Link.Lookup(oid)
-		if err != nil {
-			return err
-		}
-
-		switch obj := obj.(type) {
-		default:
-		case *git2go.Blob:
-			break
-			rep.BlobLog =
-				append(rep.BlobLog,
-					GitBlobLog{
-						Type:  obj.Type(),
-						Id:    obj.Id(),
-						IdStr: obj.Id().String(),
-						Size:  obj.Size(),
-					})
-		case *git2go.Commit:
-			author := obj.Author()
-			committer := obj.Committer()
-			rep.CommitLog =
-				append(rep.CommitLog,
-					GitCommitLog{
-						Type:  obj.Type(),
-						Id:    obj.Id(),
-						IdStr: obj.Id().String(),
-						Author: GitAuthor{
-							User:    author.Name,
-							Email:   author.Email,
-							Date:    author.When,
-							DateStr: author.When.String(),
-						},
-						Commiter: GitAuthor{
-							User:    committer.Name,
-							Email:   committer.Email,
-							Date:    committer.When,
-							DateStr: author.When.String(),
-						},
-						ParentCount: obj.ParentCount(),
-						TreeId:      obj.TreeId(),
-						Message:     strings.Replace(obj.Message(), "\n", "\n        ", -1),
-					})
-		case *git2go.Tree:
-			break
-			rep.TreeLog =
-				append(rep.TreeLog,
-					GitTreeLog{
-						Type:       obj.Type(),
-						Id:         obj.Id(),
-						IdStr:      obj.Id().String(),
-						EntryCount: obj.EntryCount(),
-					})
-		}
-		return nil
-	})
-	odb.ForEach(ccb)
-	sort.Reverse(rep.CommitLog)
-	if len(rep.CommitLog) > 10 {
-		rep.CommitLog = rep.CommitLog[0:10]
-	}
-	return nil
 }
 
 func directoryChooser(pathStr string, info os.FileInfo, err error) (string, error) {
@@ -504,4 +453,16 @@ func directoryChooser(pathStr string, info os.FileInfo, err error) (string, erro
 		return "", filepath.SkipDir
 	}
 	return pathStr, nil
+}
+
+func makeSigner(keyname string) (signer ssh.Signer, err error) {
+	key, err := ioutil.ReadFile(keyname)
+	if err != nil {
+		return
+	}
+	signer, err = ssh.ParsePrivateKey([]byte(key))
+	if err != nil {
+		return
+	}
+	return
 }

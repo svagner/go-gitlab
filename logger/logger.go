@@ -1,136 +1,84 @@
 package logger
 
 import (
-	"bytes"
-	"log"
-	"net/http"
-	"net/url"
+	"github.com/op/go-logging"
+	"log/syslog"
+	"gopkg.in/svagner/go-gitlab.v2/config"
 	"os"
-	"time"
-
-	"github.com/svagner/go-gitlab/config"
 )
 
 var (
-	debug        bool
-	logFile      os.File
-	skypeUrl     string
-	skypeDst     string
-	slackUrl     string
-	slackToken   string
-	slackChannel string
+	Log = logging.MustGetLogger("go-gitlab")
+
+	format = logging.MustStringFormatter(
+		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.8s} %{id:03x}%{color:reset} %{message}`,
+	)
+	simple_format = logging.MustStringFormatter(
+		`%{time:15:04:05.000} %{shortfunc} >> %{level:.8s} %{message}`,
+	)
 )
 
-func Init(dbg bool, cfg config.LogConfig) error {
-	if cfg.Log != "" {
-		logFile, err := os.OpenFile(cfg.Log, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-		if err != nil {
-			return err
+func InitLogging(debug bool, conf *config.LogConfig) {
+	backends := make([]logging.Backend, 0)
+	if conf.Console {
+		backend := logging.NewLogBackend(os.Stderr, "", 0)
+		//backend2 := logging.NewLogBackend(os.Stderr, "", 0)
+		//backend2Formatter := logging.NewBackendFormatter(backend2, format)
+		backendFormatter := logging.NewBackendFormatter(backend, format)
+		backendLeveled := logging.AddModuleLevel(backendFormatter)
+		if debug {
+			backendLeveled.SetLevel(logging.DEBUG, "")
+		} else {
+			backendLeveled.SetLevel(logging.INFO, "")
 		}
-		log.SetOutput(logFile)
+		//backends = append(backends, backendLeveled)
+		backends = append(backends, backendLeveled)
 	}
-	skypeUrl = cfg.SkypeUrl
-	skypeDst = cfg.SkypeDistination
-	slackUrl = cfg.SlackUrl
-	slackToken = cfg.SlackToken
-	slackChannel = cfg.SlackChannel
-	debug = dbg
-	return nil
-}
-
-func DebugPrint(text ...interface{}) {
-	if debug {
-		log.Println("[DEBUG] ", text)
+	if conf.File != "" {
+		var (
+			logFile *os.File
+			err     error
+		)
+		if conf.BufioFile {
+			logFile, err = os.OpenFile(conf.File, os.O_WRONLY|os.O_CREATE, 0666)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			logFile, err = os.OpenFile(conf.File, os.O_WRONLY|os.O_CREATE|os.O_SYNC, 0666)
+			if err != nil {
+				panic(err)
+			}
+		}
+		backend := logging.NewLogBackend(logFile, "", 0)
+		//backend2 := logging.NewLogBackend(os.Stderr, "", 0)
+		//backend2Formatter := logging.NewBackendFormatter(backend2, format)
+		backendFormatter := logging.NewBackendFormatter(backend, simple_format)
+		backendLeveled := logging.AddModuleLevel(backendFormatter)
+		if debug {
+			backendLeveled.SetLevel(logging.DEBUG, "")
+		} else {
+			backendLeveled.SetLevel(logging.INFO, "")
+		}
+		//backends = append(backends, backendLeveled)
+		backends = append(backends, backendLeveled)
 	}
-}
-
-func InfoPrint(text ...interface{}) {
-	log.Println("[INFO] ", text)
-}
-
-func WarningPrint(text ...interface{}) {
-	log.Println("[WARNING] ", text)
-}
-
-func CriticalPrint(text ...interface{}) {
-	log.Fatalln("[Critical] ", text)
-}
-
-func Delete() {
-	logFile.Close()
-}
-
-func Skype(msg string, user string) {
-	if skypeUrl == "" {
-		return
-	}
-	var (
-		Url    *url.URL
-		sendTo string
-	)
-
-	if user == "" {
-		sendTo = skypeDst
-	} else {
-		sendTo = user
-	}
-
-	Url, err := url.Parse(skypeUrl)
-	if err != nil {
-		WarningPrint("Skype url parse error: " + err.Error())
-		return
-	}
-	parameters := url.Values{}
-	parameters.Add("user", sendTo)
-	parameters.Add("msg", msg)
-	Url.RawQuery = parameters.Encode()
-	timeout := time.Duration(1 * time.Second)
-	client := http.Client{
-		Timeout: timeout,
-	}
-	resp, err := client.Get(Url.String())
-	DebugPrint("Try to send skype message: " + Url.String())
-	if err != nil {
-		WarningPrint("Skype url get error: " + err.Error())
-		return
-	}
-	DebugPrint("Send skype message response: ", resp.StatusCode)
-	if resp.StatusCode != 200 {
-		WarningPrint("Skype get wrong response: ", resp.StatusCode)
-	}
-}
-
-func Slack(msg, user string) {
-	var (
-		Url    *url.URL
-		sendTo string
-	)
-	if slackUrl == "" {
-		return
-	}
-	if user == "" {
-		sendTo = slackChannel
-	} else {
-		sendTo = user
-	}
-	Url, err := url.Parse(slackUrl)
-	parameters := url.Values{}
-	parameters.Add("token", slackToken)
-	parameters.Add("channel", "@"+sendTo)
-	Url.RawQuery = parameters.Encode()
-	timeout := time.Duration(1 * time.Second)
-	client := http.Client{
-		Timeout: timeout,
-	}
-	resp, err := client.Post("POST", Url.String(), bytes.NewBufferString(msg))
-	DebugPrint("Try to send slack message: " + Url.String())
-	if err != nil {
-		WarningPrint("Slack url get error: " + err.Error())
-		return
-	}
-	DebugPrint("Send slack message response: ", resp.StatusCode)
-	if resp.StatusCode != 200 {
-		WarningPrint("Slack get wrong response: ", resp.StatusCode)
+	if conf.Syslog {
+		backend, err := logging.NewSyslogBackendPriority("[tcp-transport-map]", syslog.LOG_MAIL)
+		if err != nil {
+			panic(err)
+		}
+		backendFormatter := logging.NewBackendFormatter(backend, simple_format)
+		backendLeveled := logging.AddModuleLevel(backendFormatter)
+		if debug {
+			backendLeveled.SetLevel(logging.DEBUG, "")
+		} else {
+			backendLeveled.SetLevel(logging.INFO, "")
+		}
+		//backends = append(backends, backendLeveled)
+		backends = append(backends, backendLeveled)
 	}
 
+	//logging.SetBackend(backend1Leveled, backend2Formatter)
+	logging.SetBackend(backends...)
 }

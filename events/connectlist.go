@@ -1,7 +1,7 @@
 package events
 
 import (
-	"github.com/svagner/go-gitlab/convert"
+	"gopkg.in/svagner/go-gitlab.v2/convert"
 )
 
 func ConnectionListSubscribe(event string, ip string) {
