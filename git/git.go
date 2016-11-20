@@ -13,6 +13,9 @@ import (
 	"github.com/howeyc/fsnotify"
 	"gopkg.in/svagner/go-gitlab.v2/config"
 	"gopkg.in/svagner/go-gitlab.v2/logger"
+	"gopkg.in/svagner/go-gitlab.v2/notify"
+	customNotify "gopkg.in/svagner/go-gitlab.v2/notify/custom"
+	slackNotify "gopkg.in/svagner/go-gitlab.v2/notify/slack"
 	git "gopkg.in/src-d/go-git.v4"
 	gitCommon "gopkg.in/svagner/go-git.v4/plumbing/client/common"
 	ssh_client "gopkg.in/svagner/go-git.v4/plumbing/client/ssh"
@@ -20,6 +23,7 @@ import (
 	"io"
 	"io/ioutil"
 	"golang.org/x/crypto/ssh"
+	"errors"
 )
 
 
@@ -93,6 +97,8 @@ type Repository struct {
 	CommitLog      GitCommit
 	Events         GitEvents
 	SubDirectories []string
+	Notify []notify.Notification
+
 }
 
 const (
@@ -120,8 +126,8 @@ func (p GitCommit) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
-func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
-	for _, rep := range repos {
+func Init(cfg config.Config) error {
+	for _, rep := range cfg.Repository {
 		var (
 			branch,
 			repName string
@@ -144,7 +150,7 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 		}
 
 
-		sshKey, err := makeSigner(cfg.PrivateKey)
+		sshKey, err := makeSigner(cfg.Git.PrivateKey)
 		if err != nil {
 			log.Fatalln("SSH error >>", err.Error())
 		}
@@ -152,7 +158,7 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 		if empty, err :=  r.IsEmpty(); empty || err != nil {
 			err = r.Clone(&git.CloneOptions{
 				URL: rep.Remote,
-				Auth: &ssh_client.PublicKeys{User: cfg.User, Signer: sshKey},
+				Auth: &ssh_client.PublicKeys{User: cfg.Git.User, Signer: sshKey},
 			})
 			if err != nil {
 				return err
@@ -171,8 +177,8 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 		subDirs := make([]string, 0)
 		Repositories[repName] = &Repository{
 			Link: r,
-			User: cfg.User,
-			Auth: &ssh_client.PublicKeys{User: cfg.User, Signer: sshKey},
+			User: cfg.Git.User,
+			Auth: &ssh_client.PublicKeys{User: cfg.Git.User, Signer: sshKey},
 			Path:          rep.Path,
 			Branch:        branch,
 			Name:          rep.Remote,
@@ -193,6 +199,27 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 			SubDirectories: subDirs,
 		}
 
+		// Init notification transports
+		logger.Log.Debug("Start init notifications for repository", repName)
+		Repositories[repName].Notify = make([]notify.Notification, 0)
+		if _, ok := cfg.Customnotify[rep.CustomNotify]; rep.CustomNotify != "" && ok {
+			custom, err := customNotify.Create(cfg.Customnotify)
+			if err != nil {
+				logger.Log.Warning("Error while init notification with type custom for" +
+					"repository", repName)
+			} else {
+				Repositories[repName].Notify = append(Repositories[repName].Notify, custom)
+			}
+		}
+		if _, ok := cfg.Slacknotify[rep.SlackNotify]; rep.SlackNotify != "" && ok {
+			custom, err := slackNotify.Create(cfg.Slacknotify)
+			if err != nil {
+				logger.Log.Warning("Error while init notification with type slack for" +
+					"repository", repName)
+			} else {
+				Repositories[repName].Notify = append(Repositories[repName].Notify, custom)
+			}
+		}
 
 		ref, err := r.Head()
 		if err != nil {
@@ -293,6 +320,16 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 			Repositories[repName].CommitLog = Repositories[repName].CommitLog[0:10]
 		}
 		logger.Log.Debug("Commits was recieved for " + rep.Remote + ": " + rep.Path)
+	}
+	return nil
+}
+
+func (rep *Repository) SendNotify(msg string, user... *UserInfo) error {
+	for _, ntf := range rep.Notify {
+		err := ntf.Send(msg, user)
+		if err != nil {
+			logger.Log.Warning("Error while send notification for repo", rep.Name, "with transport", ntf.GetType())
+		}
 	}
 	return nil
 }

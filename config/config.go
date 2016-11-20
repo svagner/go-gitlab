@@ -33,6 +33,8 @@ type GitRepository struct {
 	PushRequests  bool
 	MergeRequests bool
 	Notifications bool
+	CustomNotify string
+	SlackNotify string
 }
 
 type GitLab struct {
@@ -42,12 +44,18 @@ type GitLab struct {
 	Token  string
 }
 
+type CustomConfig struct {
+	Url string
+	Distanation string
+}
+
+type SlackConfig struct {
+	Url string
+	Token string
+	Channel string
+}
+
 type LogConfig struct {
-	SkypeUrl         string
-	SkypeDistination string
-	SlackUrl         string
-	SlackToken       string
-	SlackChannel     string
 	File      string
 	BufioFile bool
 	Syslog    bool
@@ -74,6 +82,8 @@ type Config struct {
 	Gitlab     GitLab
 	Git        GitConfig
 	Repository map[string]*GitRepository
+	Customnotify map[string]*CustomConfig
+	Slacknotify map[string]*SlackConfig
 }
 
 func (self *Config) ParseConfig(file string) error {

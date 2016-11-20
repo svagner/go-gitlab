@@ -22,8 +22,6 @@ func InitLogging(debug bool, conf *config.LogConfig) {
 	backends := make([]logging.Backend, 0)
 	if conf.Console {
 		backend := logging.NewLogBackend(os.Stderr, "", 0)
-		//backend2 := logging.NewLogBackend(os.Stderr, "", 0)
-		//backend2Formatter := logging.NewBackendFormatter(backend2, format)
 		backendFormatter := logging.NewBackendFormatter(backend, format)
 		backendLeveled := logging.AddModuleLevel(backendFormatter)
 		if debug {
@@ -31,7 +29,6 @@ func InitLogging(debug bool, conf *config.LogConfig) {
 		} else {
 			backendLeveled.SetLevel(logging.INFO, "")
 		}
-		//backends = append(backends, backendLeveled)
 		backends = append(backends, backendLeveled)
 	}
 	if conf.File != "" {
@@ -51,8 +48,6 @@ func InitLogging(debug bool, conf *config.LogConfig) {
 			}
 		}
 		backend := logging.NewLogBackend(logFile, "", 0)
-		//backend2 := logging.NewLogBackend(os.Stderr, "", 0)
-		//backend2Formatter := logging.NewBackendFormatter(backend2, format)
 		backendFormatter := logging.NewBackendFormatter(backend, simple_format)
 		backendLeveled := logging.AddModuleLevel(backendFormatter)
 		if debug {
@@ -60,7 +55,6 @@ func InitLogging(debug bool, conf *config.LogConfig) {
 		} else {
 			backendLeveled.SetLevel(logging.INFO, "")
 		}
-		//backends = append(backends, backendLeveled)
 		backends = append(backends, backendLeveled)
 	}
 	if conf.Syslog {
@@ -75,10 +69,8 @@ func InitLogging(debug bool, conf *config.LogConfig) {
 		} else {
 			backendLeveled.SetLevel(logging.INFO, "")
 		}
-		//backends = append(backends, backendLeveled)
 		backends = append(backends, backendLeveled)
 	}
 
-	//logging.SetBackend(backend1Leveled, backend2Formatter)
 	logging.SetBackend(backends...)
 }

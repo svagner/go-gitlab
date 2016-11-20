@@ -19,10 +19,8 @@ import (
 	"github.com/svagner/go-gitlab/config"
 	"github.com/svagner/go-gitlab/events"
 	"github.com/svagner/go-gitlab/git"
-	daemon "github.com/svagner/go-gitlab/lib/go-daemon"
 	"github.com/svagner/go-gitlab/logger"
 	"github.com/svagner/go-gitlab/wsclient"
-	//daemon "github.com/sevlyar/go-daemon"
 )
 
 type Record struct {
@@ -106,7 +104,6 @@ type Author struct {
 var (
 	configFile = flag.String("config", "/etc/githooks.conf", "config file")
 	sig        = flag.String("s", "", "send signal")
-	daemonize  = flag.Bool("daemon", false, "Run as daemon")
 	logFile    = flag.String("log", "/var/log/githooks.log", "Log file for logger system")
 	pidFile    = flag.String("pid", "/var/run/githooks.pid", "Pid file for save pid number")
 	templates  *template.Template
@@ -122,12 +119,12 @@ func gitHooks_process(w http.ResponseWriter, r *http.Request, cfg config.Config)
 	p := make([]byte, r.ContentLength)
 	_, err := r.Body.Read(p)
 	if err != nil && err != io.EOF {
-		logger.WarningPrint(err)
+		logger.Log.Warning(err)
 	}
-	logger.DebugPrint("Get new value: " + string(p))
+	logger.Log.Debug("Get new value:", string(p))
 	result, err := decode(bytes.NewReader(p))
 	if err != nil {
-		logger.WarningPrint("Error decode hook request: " + err.Error())
+		logger.Log.Warning("Error decode hook request:", err.Error())
 		w.Write([]byte("ERROR: " + err.Error()))
 		return
 	} else {
@@ -139,7 +136,7 @@ func gitHooks_process(w http.ResponseWriter, r *http.Request, cfg config.Config)
 func AdminPage(w http.ResponseWriter, r *http.Request, cfg config.Config) {
 	err := templates.ExecuteTemplate(w, "AdminPage", &AdminPageData{Config: cfg, Repos: git.Repositories, Title: "Admin repo page"})
 	if err != nil {
-		logger.WarningPrint("Error sent page for client " + r.Host + ": " + err.Error())
+		logger.Log.Warning("Error sent page for client", r.Host, ":", err.Error())
 	}
 }
 
@@ -150,7 +147,7 @@ func handleWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		logger.WarningPrint("Error init websocket for client " + r.Host + ": " + err.Error())
+		logger.Log.Warning("Error init websocket for client", r.Host, ":", err.Error())
 		return
 	}
 	wsclient.NewClient(ws, r.RemoteAddr, r.UserAgent())
@@ -162,21 +159,25 @@ func (req *Record) Process(cfg config.Config) {
 		branch := strings.Split(req.GitRef, "/")
 		shortBranchName := branch[len(branch)-1]
 		if _, ok := git.Repositories[req.Repository.SshUrl+"/"+shortBranchName]; !ok {
-			logger.DebugPrint("Incoming request for repository [" + req.Repository.SshUrl + "], but this repository wasn't found")
+			logger.Log.Debug("Incoming request for repository [", req.Repository.SshUrl, "], but this " +
+				"repository wasn't found")
 			return
 		}
-		if shortBranchName != git.Repositories[req.Repository.SshUrl+"/"+shortBranchName].Branch {
-			logger.DebugPrint("Incoming request for repository [" + req.Repository.SshUrl + "] and branch [" + req.GitRef + "], but branch for this repository wasn't found")
+		rep := git.Repositories[req.Repository.SshUrl+"/"+shortBranchName]
+		if shortBranchName != rep.Branch {
+			logger.Log.Debug("Incoming request for repository [", req.Repository.SshUrl, "] and branch [",
+				req.GitRef, "], but branch for this repository wasn't found")
 			return
 		}
-		if !git.Repositories[req.Repository.SshUrl+"/"+shortBranchName].Events.Push {
-			logger.DebugPrint("Incoming push request for repository [" + req.Repository.SshUrl + "] and branch [" + req.GitRef + "], but for this repository push requests isn't accepted for this repository")
+		if !rep.Events.Push {
+			logger.Log.Debug("Incoming push request for repository [",
+				req.Repository.SshUrl, "] and branch [", req.GitRef,
+				"], but for this repository push requests isn't accepted for this repository")
 			return
 		}
-		if git.Repositories[req.Repository.SshUrl+"/"+shortBranchName].Lock {
+		if rep.Lock {
 			if git.Repositories[req.Repository.SshUrl+"/"+shortBranchName].Events.Notify {
-				logger.Skype("Changes from push action need to apply but repository LOCKED. Repository: "+req.Repository.Name+", branch: "+req.GitRef+".", "")
-				logger.Slack("Changes from push action need to apply but repository LOCKED. Repository: "+req.Repository.Name+", branch: "+req.GitRef+".", "")
+				rep.SendNotify("Changes from push action need to apply but repository LOCKED. Repository: "+req.Repository.Name+", branch: "+req.GitRef+".")
 			}
 			git.Repositories[req.Repository.SshUrl+"/"+shortBranchName].History = append(git.Repositories[req.Repository.SshUrl+"/"+shortBranchName].History, git.UpdateHistory{Url: req.CommitAfter, Author: req.UserName})
 			events.Events["pushqueue"].SendToChannel("pushqueue", "add", git.GitOrig2Url(req.Repository.SshUrl)+"/"+shortBranchName)
@@ -187,42 +188,52 @@ func (req *Record) Process(cfg config.Config) {
 		break
 	case "merge_request":
 		if _, ok := git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch]; !ok {
+			logger.Log.Warning("Request merge_request error. Repository",
+				req.Object.Target.SshUrl+"/"+req.Object.TargetBranch,
+				"wasn't found")
 			return
 		}
-		if req.Object.TargetBranch != git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].Branch {
+		rep := git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch]
+		if req.Object.TargetBranch != rep.Branch {
 			return
 		}
-		if !git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].Events.Merge {
-			logger.DebugPrint("Incoming merge request for repository [" + req.Object.Target.Name + "] and branch [" + req.Object.TargetBranch + "], but merge requests isn't accepted for this repository")
+		if !rep.Events.Merge {
+			logger.Log.Debug("Incoming merge request for repository [", req.Object.Target.Name,
+				"] and branch [", req.Object.TargetBranch,
+				"], but merge requests isn't accepted for this repository")
 			return
 		}
 		if req.Object.State == "opened" {
-			if git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].Events.Notify {
-				logger.Skype("Merge request from "+req.User.Name+" for merge with repository "+req.Object.Source.Name+". Source branch: "+req.Object.SourceBranch+"; Target branch: "+req.Object.TargetBranch+". Commit: "+req.Object.LastCommit.Url, "")
-				logger.Slack("Merge request from "+req.User.Name+" for merge with repository "+req.Object.Source.Name+". Source branch: "+req.Object.SourceBranch+"; Target branch: "+req.Object.TargetBranch+". Commit: "+req.Object.LastCommit.Url, "")
+			if rep.Events.Notify {
+				rep.SendNotify("Merge request from "+req.User.Name+" for merge with repository "+req.Object.Source.Name+". Source branch: "+req.Object.SourceBranch+"; Target branch: "+req.Object.TargetBranch+". Commit: "+req.Object.LastCommit.Url)
 			}
-			logger.DebugPrint("Merge request from " + req.User.Name + " for merge with repository " + req.Object.Source.Name + ". Source branch: " + req.Object.SourceBranch + "; Target branch: " + req.Object.TargetBranch + ". Commit: " + req.Object.LastCommit.Url)
+			logger.Log.Debug("Merge request from", req.User.Name, "for merge with repository",
+				req.Object.Source.Name,
+				". Source branch:", req.Object.SourceBranch, "; Target branch:",
+				req.Object.TargetBranch, ". Commit:", req.Object.LastCommit.Url)
 			userForSendNotify, err := git.GetUserInfo(req.Object.AssigneeId)
 			if err != nil {
-				logger.WarningPrint("We have new merge request with assigneeId: " + strconv.Itoa(req.Object.AssigneeId) + ", but get for this user returned: " + err.Error())
+				logger.Log.Warning("We have new merge request with assigneeId:",
+					strconv.Itoa(req.Object.AssigneeId), ", but get for this user returned:",
+					err.Error())
 				return
 			}
-			authorInfo, err := git.GetUserInfo(req.Object.AuthorId)
+			/*authorInfo, err := git.GetUserInfo(req.Object.AuthorId)
 			if err != nil {
-				logger.WarningPrint("We have new merge request from author id: " + strconv.Itoa(req.Object.AssigneeId) + ", but get for this user returned: " + err.Error())
+				logger.Log.Warning("We have new merge request from author id:",
+					req.Object.AssigneeId, ", but get for this user returned:",
+					err.Error())
 				return
-			}
+			}*/
 
-			if git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].Events.Notify {
-				logger.Skype("User "+req.Object.LastCommit.Author.Name+" (skype: "+authorInfo.Skype+")"+" ask you to accept his merge request ("+req.Object.Url+") to the repository "+req.Object.Target.Name+" (branch "+req.Object.TargetBranch+")", userForSendNotify.Skype)
-				logger.Slack("User "+req.Object.LastCommit.Author.Name+" ( @"+authorInfo.Website+": )"+" ask you to accept his merge request ("+req.Object.Url+") to the repository "+req.Object.Target.Name+" (branch "+req.Object.TargetBranch+")", userForSendNotify.Website)
+			if rep.Events.Notify {
+				rep.SendNotify("User "+req.Object.LastCommit.Author.Name+" ask you to accept his merge request ("+req.Object.Url+") to the repository "+req.Object.Target.Name+" (branch "+req.Object.TargetBranch+")", userForSendNotify)
 			}
 		}
 		if req.Object.State == "merged" {
-			if git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].Lock {
+			if rep.Lock {
 				if git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].Events.Notify {
-					logger.Skype("Changes from merging "+req.Object.Url+" need to apply but repository LOCKED. Repository: "+req.Object.Target.Name+", branch: "+req.Object.TargetBranch+".", "")
-					logger.Slack("Changes from merging "+req.Object.Url+" need to apply but repository LOCKED. Repository: "+req.Object.Target.Name+", branch: "+req.Object.TargetBranch+".", "")
+					rep.SendNotify("Changes from merging "+req.Object.Url+" need to apply but repository LOCKED. Repository: "+req.Object.Target.Name+", branch: "+req.Object.TargetBranch+".")
 				}
 				git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].History = append(git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].History, git.UpdateHistory{Url: req.Object.Url, Author: req.User.Name})
 				events.Events["pushqueue"].SendToChannel("pushqueue", "add", git.GitOrig2Url(req.Object.Target.SshUrl)+"/"+req.Object.TargetBranch)
@@ -232,63 +243,28 @@ func (req *Record) Process(cfg config.Config) {
 			}
 		}
 		if req.Object.State == "closed" && req.Object.Action == "close" {
-			logger.DebugPrint("Merge request from " + req.User.Name + " for merge with repository " + req.Object.Source.Name + ". Source branch: " + req.Object.SourceBranch + "; Target branch: " + req.Object.TargetBranch + ". Commit: " + req.Object.LastCommit.Url)
+			logger.Log.Debug("Merge request from " + req.User.Name + " for merge with repository " + req.Object.Source.Name + ". Source branch: " + req.Object.SourceBranch + "; Target branch: " + req.Object.TargetBranch + ". Commit: " + req.Object.LastCommit.Url)
 			userForSendNotify, err := git.GetUserInfo(req.Object.AuthorId)
 			if err != nil {
-				logger.WarningPrint("We have changes in merge request with userId: " + strconv.Itoa(req.Object.AuthorId) + ", but get for this user returned: " + err.Error())
+				logger.Log.Warning("We have changes in merge request with userId:", strconv.Itoa(req.Object.AuthorId), ", but get for this user returned:", err.Error())
 				return
 			}
-			if git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].Events.Notify {
-				logger.Skype("Your merge request "+req.Object.Url+" to the repository "+req.Object.Target.Name+" (branch "+req.Object.TargetBranch+") was closed", userForSendNotify.Skype)
-				logger.Slack("Your merge request "+req.Object.Url+" to the repository "+req.Object.Target.Name+" (branch "+req.Object.TargetBranch+") was closed", userForSendNotify.Website)
+
+			if rep.Events.Notify {
+				rep.SendNotify("Your merge request "+req.Object.Url+" to the repository "+req.Object.Target.Name+" (branch "+req.Object.TargetBranch+") was closed", userForSendNotify)
 			}
 		}
 	}
 }
 
 func main() {
-	daemon.AddCommand(daemon.StringFlag(sig, "term"), syscall.SIGTERM, cleanup)
-	daemon.AddCommand(daemon.StringFlag(sig, "reload"), syscall.SIGHUP, cleanup)
 	flag.Parse()
-
-	if *daemonize {
-		// Define daemon context
-		dmn := &daemon.Context{
-			PidFileName: *pidFile,
-			PidFilePerm: 0644,
-			LogFileName: *logFile,
-			LogFilePerm: 0640,
-			WorkDir:     "/",
-			Umask:       022,
-		}
-
-		// Send commands if needed
-		if len(daemon.ActiveFlags()) > 0 {
-			d, err := dmn.Search()
-			if err != nil {
-				logger.WarningPrint("Unable send signal to the daemon:", err)
-			}
-			daemon.SendCommands(d)
-			return
-		}
-
-		// Process daemon operations - send signal if present flag or daemonize
-		//daemon.SetSigHandler(cleanup, os.Interrupt, syscall.SIGTERM, os.Kill)
-		child, err := dmn.Reborn()
-		if err != nil {
-			log.Fatalln(err)
-		}
-		if child != nil {
-			return
-		}
-		defer dmn.Release()
-	}
 
 	// Parse config
 	var Config config.Config
 	err := Config.ParseConfig(*configFile)
 	if err != nil {
-		logger.CriticalPrint("Parse config: " + err.Error())
+		logger.Log.Critical("Parse config:", err.Error())
 	}
 
 	// signals handle
@@ -296,7 +272,7 @@ func main() {
 	signal.Notify(sigChan, os.Interrupt, os.Kill, syscall.SIGTERM)
 	go func() {
 		sig := <-sigChan
-		logger.InfoPrint("captured interrupt, exiting..")
+		logger.Log.Info("captured interrupt, exiting..")
 		cleanup(sig)
 		os.Exit(1)
 	}()
@@ -320,20 +296,22 @@ func main() {
 		}
 	}
 
-	logger.Init(Config.Global.Debug, Config.Logger)
+	logger.InitLogging(Config.Global.Debug, Config.Logger)
 	intPort, err := strconv.Atoi(Config.Global.Port)
 	if err != nil {
-		logger.CriticalPrint(err)
+		logger.Log.Critical("Port for listening is invalid:", err.Error())
+		return
 	}
 	if intPort > 65564 {
-		logger.CriticalPrint("Port is'n correct")
+		logger.Log.Critical("Port is'n correct")
+		return
 	}
-	log.Println(Config)
 
 	// Init git local repositories
-	err = git.Init(Config.Git, Config.Repository)
+	err = git.Init(Config)
 	if err != nil {
-		logger.WarningPrint("Init repositories failed: " + err.Error())
+		logger.Log.Critical("Init repositories failed:", err.Error())
+		return
 	}
 
 	// init git api
@@ -364,18 +342,20 @@ func main() {
 	}
 	templates, err = template.ParseGlob(templateDir + "/html/*.html")
 	if err != nil {
-		logger.CriticalPrint("Error init templates: " + err.Error())
+		logger.Log.Critical("Error init templates:" + err.Error())
+		return
 	}
 
 	if apiDir == managementDir {
-		logger.CriticalPrint("Error init web interface: [web] Management couldn't equal Api [" + apiDir + "], [" + managementDir + "]")
+		logger.Log.Critical("Error init web interface: [web] Management couldn't equal Api [" + apiDir + "], [" + managementDir + "]")
+		return
 	}
 
 	events.Init()
 	http.HandleFunc(apiDir, func(w http.ResponseWriter, r *http.Request) { gitHooks_process(w, r, Config) })
 	http.HandleFunc(managementDir, func(w http.ResponseWriter, r *http.Request) { AdminPage(w, r, Config) })
 	http.HandleFunc("/ws", handleWs)
-	logger.CriticalPrint(http.ListenAndServe(Config.Global.Host+":"+Config.Global.Port, nil))
+	logger.Log.Critical(http.ListenAndServe(Config.Global.Host+":"+Config.Global.Port, nil))
 }
 
 func decode(r io.Reader) (x *Record, err error) {
@@ -391,7 +371,7 @@ func gitScheduler(cfg config.Config) {
 }
 
 func cleanup(sig os.Signal) (err error) {
-	logger.InfoPrint("signal " + sig.String() + ": exiting..")
+	logger.Log.Info("signal " + sig.String() + ": exiting..")
 	for _, rep := range git.Repositories {
 		rep.Quit <- true
 		rep.FileWatchQuit <- true
@@ -414,21 +394,19 @@ func gitEvents(rep *git.Repository) {
 			rep.FileUpdate = false
 			if err != nil {
 				if rep.Events.Notify {
-					logger.Skype("Changes from merging "+report+" wasn't applied. Repository: "+rep.Name+", branch: "+rep.Branch+". Merging return error: "+err.Error(), "")
-					logger.Slack("Changes from merging "+report+" wasn't applied. Repository: "+rep.Name+", branch: "+rep.Branch+". Merging return error: "+err.Error(), "")
+					rep.SendNotify("Changes from merging "+report+" wasn't applied. Repository: "+rep.Name+", branch: "+rep.Branch+". Merging return error: "+err.Error())
 				}
-				logger.DebugPrint("Changes from merging " + report + " wasn't applied. Repository: " + rep.Name + ", branch: " + rep.Branch + ". Merging return error: " + err.Error())
+				logger.Log.Debug("Changes from merging", report, "wasn't applied. Repository:" + rep.Name + ", branch:", rep.Branch, ". Merging return error:", err.Error())
 			} else {
 				if rep.Events.Notify {
-					logger.Skype("Changes from merging "+report+" was applied. Repository: "+rep.Name+", branch: "+rep.Branch, "")
-					logger.Slack("Changes from merging "+report+" was applied. Repository: "+rep.Name+", branch: "+rep.Branch, "")
+					rep.SendNotify("Changes from merging "+report+" was applied. Repository: "+rep.Name+", branch: "+rep.Branch)
 				}
-				logger.DebugPrint("Changes from merging " + report + " was applied. Repository: " + rep.Name + ", branch: " + rep.Branch)
+				logger.Log.Debug("Changes from merging", report, "was applied. Repository:", rep.Name, ", branch:", rep.Branch)
 			}
 		}
 	}
 EXIT:
-	logger.DebugPrint("Goroutine exiting for repository " + rep.Name + "[" + rep.Path + "]")
+	logger.Log.Debug("Goroutine exiting for repository", rep.Name, "[", rep.Path, "]")
 	rep.QuitReport <- true
 	return
 }
