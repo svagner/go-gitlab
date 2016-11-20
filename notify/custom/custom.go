@@ -39,7 +39,7 @@ func (c Custom) GetType() string {
 	return typeNotify
 }
 
-func (c Custom) Send(msg string, user... *git.UserInfo) (err error) {
+func (c Custom) Send(tmpl string, data interface{}, user... *git.UserInfo) (err error) {
 	var (
 		sendTo string
 		Url    *url.URL

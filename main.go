@@ -21,6 +21,7 @@ import (
 	"github.com/svagner/go-gitlab/git"
 	"github.com/svagner/go-gitlab/logger"
 	"github.com/svagner/go-gitlab/wsclient"
+	"gopkg.in/svagner/go-gitlab.v2/notify"
 )
 
 type Record struct {
@@ -155,7 +156,7 @@ func handleWs(w http.ResponseWriter, r *http.Request) {
 
 func (req *Record) Process(cfg config.Config) {
 	switch req.Kind {
-	case "push":
+	case notify.PushAction:
 		branch := strings.Split(req.GitRef, "/")
 		shortBranchName := branch[len(branch)-1]
 		if _, ok := git.Repositories[req.Repository.SshUrl+"/"+shortBranchName]; !ok {
@@ -177,7 +178,12 @@ func (req *Record) Process(cfg config.Config) {
 		}
 		if rep.Lock {
 			if git.Repositories[req.Repository.SshUrl+"/"+shortBranchName].Events.Notify {
-				rep.SendNotify("Changes from push action need to apply but repository LOCKED. Repository: "+req.Repository.Name+", branch: "+req.GitRef+".")
+				rep.SendNotify(notify.LockedMsg, notify.Notify{
+					Url: req.Repository.SshUrl,
+					Repository: req.Repository.Name,
+					Branch: req.GitRef,
+					Action: notify.PushAction,
+				})
 			}
 			git.Repositories[req.Repository.SshUrl+"/"+shortBranchName].History = append(git.Repositories[req.Repository.SshUrl+"/"+shortBranchName].History, git.UpdateHistory{Url: req.CommitAfter, Author: req.UserName})
 			events.Events["pushqueue"].SendToChannel("pushqueue", "add", git.GitOrig2Url(req.Repository.SshUrl)+"/"+shortBranchName)
@@ -205,7 +211,15 @@ func (req *Record) Process(cfg config.Config) {
 		}
 		if req.Object.State == "opened" {
 			if rep.Events.Notify {
-				rep.SendNotify("Merge request from "+req.User.Name+" for merge with repository "+req.Object.Source.Name+". Source branch: "+req.Object.SourceBranch+"; Target branch: "+req.Object.TargetBranch+". Commit: "+req.Object.LastCommit.Url)
+				rep.SendNotify(notify.MergeRequestMsg, notify.Notify{
+					User: notify.User{
+						Name: req.User.Name,
+					},
+					Repository: req.Object.Source.Name,
+					SourceBranch: req.Object.SourceBranch,
+					TargetBranch: req.Object.TargetBranch,
+					Url: req.Object.LastCommit.Url,
+				})
 			}
 			logger.Log.Debug("Merge request from", req.User.Name, "for merge with repository",
 				req.Object.Source.Name,
@@ -218,22 +232,36 @@ func (req *Record) Process(cfg config.Config) {
 					err.Error())
 				return
 			}
-			/*authorInfo, err := git.GetUserInfo(req.Object.AuthorId)
+			authorInfo, err := git.GetUserInfo(req.Object.AuthorId)
 			if err != nil {
 				logger.Log.Warning("We have new merge request from author id:",
 					req.Object.AssigneeId, ", but get for this user returned:",
 					err.Error())
 				return
-			}*/
+			}
 
 			if rep.Events.Notify {
-				rep.SendNotify("User "+req.Object.LastCommit.Author.Name+" ask you to accept his merge request ("+req.Object.Url+") to the repository "+req.Object.Target.Name+" (branch "+req.Object.TargetBranch+")", userForSendNotify)
+				rep.SendNotify(notify.AskAcceptPrivateMsg, notify.Notify{
+					User: notify.User{
+						Name: req.Object.LastCommit.Author.Name,
+						Custom: authorInfo.Skype,
+						Slack: authorInfo.Website,
+					},
+					Url: req.Object.Url,
+					Repository: req.Object.Target.Name,
+					Branch: req.Object.TargetBranch,
+				}, userForSendNotify)
 			}
 		}
-		if req.Object.State == "merged" {
+		if req.Object.State == notify.MergedAction {
 			if rep.Lock {
 				if git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].Events.Notify {
-					rep.SendNotify("Changes from merging "+req.Object.Url+" need to apply but repository LOCKED. Repository: "+req.Object.Target.Name+", branch: "+req.Object.TargetBranch+".")
+					rep.SendNotify(notify.LockedMsg, notify.Notify{
+						Url: req.Object.Url,
+						Repository: req.Object.Target.Name,
+						Branch: req.Object.TargetBranch,
+						Action: notify.MergedAction,
+					})
 				}
 				git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].History = append(git.Repositories[req.Object.Target.SshUrl+"/"+req.Object.TargetBranch].History, git.UpdateHistory{Url: req.Object.Url, Author: req.User.Name})
 				events.Events["pushqueue"].SendToChannel("pushqueue", "add", git.GitOrig2Url(req.Object.Target.SshUrl)+"/"+req.Object.TargetBranch)
@@ -251,7 +279,11 @@ func (req *Record) Process(cfg config.Config) {
 			}
 
 			if rep.Events.Notify {
-				rep.SendNotify("Your merge request "+req.Object.Url+" to the repository "+req.Object.Target.Name+" (branch "+req.Object.TargetBranch+") was closed", userForSendNotify)
+				rep.SendNotify(notify.MergePrivateCloseMsg, notify.Notify{
+					Url: req.Object.Url,
+					Repository: req.Object.Target.Name,
+					Branch: req.Object.TargetBranch,
+				}, userForSendNotify)
 			}
 		}
 	}
@@ -394,12 +426,21 @@ func gitEvents(rep *git.Repository) {
 			rep.FileUpdate = false
 			if err != nil {
 				if rep.Events.Notify {
-					rep.SendNotify("Changes from merging "+report+" wasn't applied. Repository: "+rep.Name+", branch: "+rep.Branch+". Merging return error: "+err.Error())
+					rep.SendNotify(notify.MergeErrorMsg, notify.Notify{
+						Url: report,
+						Repository: rep.Name,
+						Branch: rep.Branch,
+						Error: err.Error(),
+					})
 				}
 				logger.Log.Debug("Changes from merging", report, "wasn't applied. Repository:" + rep.Name + ", branch:", rep.Branch, ". Merging return error:", err.Error())
 			} else {
 				if rep.Events.Notify {
-					rep.SendNotify("Changes from merging "+report+" was applied. Repository: "+rep.Name+", branch: "+rep.Branch)
+					rep.SendNotify(notify.MergeSuccessMsg, notify.Notify{
+						Url: report,
+						Repository: rep.Name,
+						Branch: rep.Branch,
+					})
 				}
 				logger.Log.Debug("Changes from merging", report, "was applied. Repository:", rep.Name, ", branch:", rep.Branch)
 			}

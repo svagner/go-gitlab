@@ -23,7 +23,6 @@ import (
 	"io"
 	"io/ioutil"
 	"golang.org/x/crypto/ssh"
-	"errors"
 )
 
 
@@ -334,7 +333,7 @@ func (rep *Repository) SendNotify(msg string, user... *UserInfo) error {
 	return nil
 }
 
-func (rep *Repository) GetUpdates(c string) error {
+func (rep *Repository) GetUpdates() error {
 	err := rep.Link.Pull(&git.PullOptions{
 		RemoteName: "origin",
 		Auth: &ssh_client.PublicKeys{User: rep.User, Signer: rep.Auth},
@@ -350,12 +349,12 @@ func (rep *Repository) GetUpdates(c string) error {
 	if err != nil {
 		return err
 	}
-	logger.Log.Debug("Got commit", c, ref.Hash().String())
+	//logger.Log.Debug("Got commit", c, ref.Hash().String())
 	files,_ := commit.Files()
 
 	// ... now we iterate the files to save to disk
 	err = files.ForEach(func(f *git.File) error {
-		logger.Log.Debug("Commit", c, "file", rep.Path, f.Name)
+		//logger.Log.Debug("Commit", c, "file", rep.Path, f.Name)
 		abs := filepath.Join(rep.Path, f.Name)
 		dir := filepath.Dir(abs)
 

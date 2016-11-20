@@ -46,7 +46,7 @@ func (s Slack) GetType() string {
 	return typeNotify
 }
 
-func (s Slack) Send(msg string, user... *git.UserInfo) error {
+func (s Slack) Send(tmpl string, data interface{}, user... *git.UserInfo) error {
 	var (
 		Url    *url.URL
 		sendTo string
