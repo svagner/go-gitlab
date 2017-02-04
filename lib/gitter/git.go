@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"gopkg.in/svagner/go-gitlab.v1/config"
+	"gopkg.in/svagner/go-gitlab.v1/logger"
 	"fmt"
 )
 
@@ -30,6 +31,7 @@ func New(cfg config.GitConfig) (*Gitter, error) {
 
 // Clone clones a git repo to a name
 func (g *Gitter) Clone(repo, branch, name string) error {
+	logger.DebugPrint(fmt.Sprintf("Execute process: %s %s %s %s %s %s %s %s", g.environment, g.git, "clone", repo, "--branch", branch, "--single-branch", name))
 	cmd := &exec.Cmd{Path: g.git, Args: []string{"clone", repo, "--branch", branch, "--single-branch", name}, Env: []string{g.environment}}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -69,8 +71,8 @@ func (g *Gitter) Pull(repoPath string) error {
 			log.Fatal(err)
 		}
 	}()
+	logger.DebugPrint(fmt.Sprintf("Execute process: %s %s %s", g.environment, g.git, "pull"))
 	cmd := &exec.Cmd{Path: g.git, Args: []string{"pull"}, Env: []string{g.environment}}
-	cmd := exec.Command(g.git, "pull")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
