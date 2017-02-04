@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/svagner/go-gitlab/config"
-	"github.com/svagner/go-gitlab/logger"
+	"gopkg.in/svagner/go-gitlab.v1/config"
+	"gopkg.in/svagner/go-gitlab.v1/logger"
 )
 
 /* {"name":string,"username":string,"id":int, "state":string,

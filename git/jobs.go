@@ -10,10 +10,9 @@ import (
 	"path/filepath"
 
 	"github.com/howeyc/fsnotify"
-	"github.com/svagner/go-gitlab/config"
-	"github.com/svagner/go-gitlab/logger"
-	git2go "gopkg.in/libgit2/git2go.v22"
-	"../lib/gitter"
+	"gopkg.in/svagner/go-gitlab.v1/logger"
+	"gopkg.in/svagner/go-gitlab.v1/config"
+	"gopkg.in/svagner/go-gitlab.v1/lib/gitter"
 )
 
 
@@ -28,26 +27,19 @@ type UpdateHistory struct {
 }
 
 type GitCommitLog struct {
-	Type        git2go.ObjectType
-	Id          *git2go.Oid
 	IdStr       string
 	Author      GitAuthor
 	Commiter    GitAuthor
 	ParentCount uint
-	TreeId      *git2go.Oid
 	Message     string
 }
 
 type GitBlobLog struct {
-	Type  git2go.ObjectType
-	Id    *git2go.Oid
 	IdStr string
 	Size  int64
 }
 
 type GitTreeLog struct {
-	Type       git2go.ObjectType
-	Id         *git2go.Oid
 	IdStr      string
 	EntryCount uint64
 }

@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"github.com/svagner/go-gitlab/config"
+	"gopkg.in/svagner/go-gitlab.v1/config"
 	"fmt"
 )
 

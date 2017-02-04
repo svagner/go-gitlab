@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/gorilla/websocket"
-	"github.com/svagner/go-gitlab/convert"
-	"github.com/svagner/go-gitlab/events"
+	"gopkg.in/svagner/go-gitlab.v1/convert"
+	"gopkg.in/svagner/go-gitlab.v1/events"
 )
 
 type eventsList []string

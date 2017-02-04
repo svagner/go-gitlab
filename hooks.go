@@ -16,13 +16,12 @@ import (
 	"syscall"
 
 	"github.com/gorilla/websocket"
-	"github.com/svagner/go-gitlab/config"
-	"github.com/svagner/go-gitlab/events"
-	"github.com/svagner/go-gitlab/git"
-	daemon "github.com/svagner/go-gitlab/lib/go-daemon"
-	"github.com/svagner/go-gitlab/logger"
-	"github.com/svagner/go-gitlab/wsclient"
-	//daemon "github.com/sevlyar/go-daemon"
+	"gopkg.in/svagner/go-gitlab.v1/config"
+	"gopkg.in/svagner/go-gitlab.v1/logger"
+	"gopkg.in/svagner/go-gitlab.v1/events"
+	"gopkg.in/svagner/go-gitlab.v1/git"
+	daemon "gopkg.in/svagner/go-gitlab.v1/lib/go-daemon"
+	"gopkg.in/svagner/go-gitlab.v1/wsclient"
 )
 
 type Record struct {

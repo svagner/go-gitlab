@@ -3,8 +3,8 @@ package events
 import (
 	"errors"
 
-	"github.com/svagner/go-gitlab/convert"
-	"github.com/svagner/go-gitlab/git"
+	"gopkg.in/svagner/go-gitlab.v1/convert"
+	"gopkg.in/svagner/go-gitlab.v1/git"
 )
 
 type clientChan struct {
