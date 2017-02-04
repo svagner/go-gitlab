@@ -117,7 +117,7 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 
 		log.Println(rep.Remote)
 		logger.DebugPrint("Init new repository (clone) copy for " + rep.Remote + ": " + rep.Path)
-		git, err := gitter.New(cfg)
+		git, err := gitter.New(cfg, rep)
 		if err != nil {
 			logger.WarningPrint("Error while init git binary: " + err.Error())
 			return err
@@ -179,6 +179,11 @@ func (rep *Repository) GetUpdates() error {
 func GitUrl2Orig(url string) string {
 	repo := strings.SplitN(strings.TrimLeft(url, "ssh://"), "/", 2)
 	return repo[0] + ":" + repo[1]
+}
+
+func GitOrig2Url(url string) string {
+	repo := strings.SplitN(url, ":", 2)
+	return "ssh://" + repo[0] + "/" + repo[1]
 }
 
 func GitOrig2Http(url string) string {
@@ -263,6 +268,8 @@ func (rep *Repository) fsEvent(watcher *fsnotify.Watcher) {
 		}
 	}
 }
+
+
 
 func directoryChooser(pathStr string, info os.FileInfo, err error) (string, error) {
 	if !info.IsDir() {

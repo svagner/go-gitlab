@@ -29,6 +29,7 @@ type GitRepository struct {
 	Path          string
 	Branch        string
 	Remote        string
+	Port 	      int
 	PushRequests  bool
 	MergeRequests bool
 	Notifications bool

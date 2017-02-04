@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/svagner/go-gitlab/config"
+	"gopkg.in/svagner/go-gitlab.v1/config"
 )
 
 var (
@@ -34,7 +34,9 @@ func Init(dbg bool, cfg config.LogConfig) error {
 	slackUrl = cfg.SlackUrl
 	slackToken = cfg.SlackToken
 	slackChannel = cfg.SlackChannel
+	log.Println(dbg)
 	debug = dbg
+	log.Println(debug)
 	return nil
 }
 

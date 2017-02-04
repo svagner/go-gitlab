@@ -319,7 +319,12 @@ func main() {
 		}
 	}
 
-	logger.Init(Config.Global.Debug, Config.Logger)
+
+	log.Println(Config.Global.Debug, Config.Logger)
+	err = logger.Init(Config.Global.Debug, Config.Logger)
+	if err != nil {
+		log.Fatalln("Error init logger:", err.Error())
+	}
 	intPort, err := strconv.Atoi(Config.Global.Port)
 	if err != nil {
 		logger.CriticalPrint(err)
