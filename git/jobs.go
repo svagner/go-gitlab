@@ -58,7 +58,7 @@ type GitEvents struct {
 }
 
 type Repository struct {
-	Git	gitter.Gitter
+	Git	*gitter.Gitter
 	Path           string
 	Branch         string
 	Update         chan string
@@ -137,7 +137,7 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 		cmtLog := make([]GitCommitLog, 0)
 		subDirs := make([]string, 0)
 		Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch] = &Repository{
-			Git:		&git,
+			Git:	git,
 			Path:          rep.Path,
 			Branch:        branch,
 			Name:          rep.Remote,
