@@ -22,6 +22,7 @@ import (
 	"gopkg.in/svagner/go-gitlab.v1/git"
 	daemon "gopkg.in/svagner/go-gitlab.v1/lib/go-daemon"
 	"gopkg.in/svagner/go-gitlab.v1/wsclient"
+	"io/ioutil"
 )
 
 type Record struct {
@@ -118,11 +119,13 @@ type AdminPageData struct {
 }
 
 func gitHooks_process(w http.ResponseWriter, r *http.Request, cfg config.Config) {
-	p := make([]byte, r.ContentLength)
+	logger.DebugPrint("Got data with length", r.ContentLength)
+	/*p := make([]byte, r.ContentLength)
 	_, err := r.Body.Read(p)
 	if err != nil && err != io.EOF {
 		logger.WarningPrint(err)
-	}
+	}*/
+	p, err := ioutil.ReadAll(r.Body);
 	logger.DebugPrint("Get new value: " + string(p))
 	result, err := decode(bytes.NewReader(p))
 	if err != nil {
@@ -160,6 +163,7 @@ func (req *Record) Process(cfg config.Config) {
 	case "push":
 		branch := strings.Split(req.GitRef, "/")
 		shortBranchName := branch[len(branch)-1]
+		logger.DebugPrint(git.Repositories)
 		if _, ok := git.Repositories[req.Repository.SshUrl+"/"+shortBranchName]; !ok {
 			logger.DebugPrint("Incoming request for repository [" + req.Repository.SshUrl + "], but this repository wasn't found")
 			return

@@ -136,7 +136,7 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 		treeLog := make([]GitTreeLog, 0)
 		cmtLog := make([]GitCommitLog, 0)
 		subDirs := make([]string, 0)
-		Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch] = &Repository{
+		Repositories[rep.Remote+"/"+rep.Branch] = &Repository{
 			Git:	git,
 			Path:          rep.Path,
 			Branch:        branch,
@@ -157,7 +157,7 @@ func Init(cfg config.GitConfig, repos map[string]*config.GitRepository) error {
 			},
 			SubDirectories: subDirs,
 		}
-		go Repositories[GitUrl2Orig(rep.Remote)+"/"+rep.Branch].InitFSWatch()
+		go Repositories[rep.Remote+"/"+rep.Branch].InitFSWatch()
 
 		// get rep log
 		logger.DebugPrint(rep)
